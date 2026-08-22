@@ -701,7 +701,7 @@
     </div>
   </div>
   <div class="header-actions" id="headerActionsList">
-    <button onclick="if(document.referrer){history.back();}else{alert('Fecha esta aba para voltar ao Painel.');}" style="background:#0f6e56;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px">⟵ Painel</button>
+    <button onclick="if(history.length>1){history.back();}else{alert('Fecha esta aba para voltar ao Painel.');}" style="background:#0f6e56;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px">⟵ Painel</button>
     <button class="btn btn-primary" onclick="novaInspeccao()">+ Nova Inspecção</button>
     <button class="btn" onclick="exportAllJSON()" title="Exportar todas as fichas para JSON">📦 Exportar todas</button>
     <button class="btn" onclick="showUserModal()">👤 <span id="headerUser">—</span></button>
