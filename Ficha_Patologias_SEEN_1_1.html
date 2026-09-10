@@ -165,7 +165,7 @@
       <div class="counter-label">observadas</div>
     </div>
   </div>
-  <div class="toolbar">
+  <div class="toolbar"><button class="btn btn-ghost btn-sm" onclick="if(history.length>1){history.back();}else{alert('Fecha esta aba para voltar ao Painel.');}">&#10229; Painel</button>
     <div class="search-wrap">
       <span class="search-icon">&#128269;</span>
       <input type="text" id="search-input" placeholder="Pesquisar patologia&hellip;" oninput="renderList()"/>
