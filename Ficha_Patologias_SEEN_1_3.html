@@ -87,9 +87,6 @@
   .chip.checked { border-color: var(--accent); background: rgba(44,111,224,0.1); color: var(--text); }
   .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
   .chip.checked .chip-dot { background: var(--accent); }
-  .chip-toggle { display: flex; align-items: center; cursor: pointer; padding: 2px; flex-shrink: 0; }
-  .chip-text-input { border: none; background: transparent; font: inherit; color: inherit; outline: none; padding: 0; cursor: text; max-width: 260px; }
-  .chip input.chip-text-input { display: inline-block; }
 
   .photo-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .photo-thumb { position: relative; width: 74px; height: 74px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
@@ -283,7 +280,7 @@ let customSeq = 1;
 function initState() {
   state.patologias = PATOLOGIAS.map(p => ({
     id: 'p'+p.num, num: p.num, tipo: p.tipo,
-    elementos: [...p.elementos], causas: [...p.causas],
+    elementos: p.elementos, causas: p.causas,
     observada: false,
     elementosSel: p.elementos.map(()=>false),
     elementoOutro: '',
@@ -337,7 +334,7 @@ function cardHTML(item){
   const nCausa = item.causasSel.filter(Boolean).length + (item.causaOutro.trim()?1:0);
 
   let titleHTML;
-  if (true) {
+  if (isCustom) {
     titleHTML = `<div class="field-with-mic" style="flex:1;min-width:0" onclick="event.stopPropagation()">
       <input class="custom-title-input" placeholder="Descreva a patologia observada&hellip;" value="${esc(item.tipo)}"
         oninput="updateCustomTitle('${item.id}', this.value)"/>
@@ -350,14 +347,16 @@ function cardHTML(item){
   let body = '';
   if (isOpen) {
     const elemChips = item.elementos.map((el,i)=>`
-      <span class="chip ${item.elementosSel[i]?'checked':''}">
-        <span class="chip-toggle" onclick="event.stopPropagation();toggleElemento('${item.id}',${i})"><span class="chip-dot"></span></span><input class="chip-text-input" value="${esc(el)}" size="${Math.max(4,el.length+2)}" onclick="event.stopPropagation()" oninput="updateElementoText('${item.id}',${i},this.value);this.size=Math.max(4,this.value.length+2)"/>
-      </span>`).join('');
+      <label class="chip ${item.elementosSel[i]?'checked':''}" onclick="event.stopPropagation()">
+        <input type="checkbox" ${item.elementosSel[i]?'checked':''} onchange="toggleElemento('${item.id}',${i},this.checked)"/>
+        <span class="chip-dot"></span>${esc(el)}
+      </label>`).join('');
 
     const causaChips = item.causas.map((c,i)=>`
-      <span class="chip ${item.causasSel[i]?'checked':''}">
-        <span class="chip-toggle" onclick="event.stopPropagation();toggleCausa('${item.id}',${i})"><span class="chip-dot"></span></span><input class="chip-text-input" value="${esc(c)}" size="${Math.max(4,c.length+2)}" onclick="event.stopPropagation()" oninput="updateCausaText('${item.id}',${i},this.value);this.size=Math.max(4,this.value.length+2)"/>
-      </span>`).join('');
+      <label class="chip ${item.causasSel[i]?'checked':''}" onclick="event.stopPropagation()">
+        <input type="checkbox" ${item.causasSel[i]?'checked':''} onchange="toggleCausa('${item.id}',${i},this.checked)"/>
+        <span class="chip-dot"></span>${esc(c)}
+      </label>`).join('');
 
     const photosHTML = item.fotos.map((f,i)=>`
       <div class="photo-thumb">
@@ -459,15 +458,15 @@ function toggleObservada(id){
   markDirty();
   renderList();
 }
-function toggleElemento(id, i){
+function toggleElemento(id, i, checked){
   const item = findItem(id);
-  item.elementosSel[i] = !item.elementosSel[i];
+  item.elementosSel[i] = checked;
   markDirty();
   renderList();
 }
-function toggleCausa(id, i){
+function toggleCausa(id, i, checked){
   const item = findItem(id);
-  item.causasSel[i] = !item.causasSel[i];
+  item.causasSel[i] = checked;
   markDirty();
   renderList();
 }
@@ -476,8 +475,6 @@ function updateOutro(id, field, val){
   item[field] = val;
   markDirty();
 }
-function updateElementoText(id, i, val){ const item = findItem(id); item.elementos[i] = val; markDirty(); }
-function updateCausaText(id, i, val){ const item = findItem(id); item.causas[i] = val; markDirty(); }
 function updateField(id, field, val){
   const item = findItem(id);
   item[field] = val;
