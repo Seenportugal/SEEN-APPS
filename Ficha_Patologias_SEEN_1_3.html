@@ -748,7 +748,7 @@ function toggleDictation(btn){
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const chunk = e.results[i][0].transcript;
-      if (e.results[i].isFinal) finalTranscript += chunk + ' ';
+      if (e.results[i].isFinal) { const _pre = baseValue + finalTranscript; const _c = chunk.trim().replace(/\s*ponto de interrogação\s*/gi,'? ').replace(/\s*ponto de exclamação\s*/gi,'! ').replace(/\s*ponto e v[ií]rgula\s*/gi,'; ').replace(/\s*dois pontos\s*/gi,': ').replace(/\s*ponto final\s*/gi,'. ').replace(/\s*v[ií]rgula\s*/gi,', ').replace(/\s*nova linha\s*/gi,String.fromCharCode(10)).replace(/\s*parágrafo\s*/gi,String.fromCharCode(10,10)).replace(/\s+([.,;:!?])/g,'$1').trim(); finalTranscript += ((!_pre || /[.!?]\s*$/.test(_pre)) ? _c.charAt(0).toUpperCase() + _c.slice(1) : _c) + ' '; }
       else interim += chunk;
     }
     targetEl.value = baseValue + finalTranscript + interim;
