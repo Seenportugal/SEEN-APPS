@@ -3154,7 +3154,7 @@ window.addEventListener('load', async () => {
       const before = baseValue.slice(0, insertPos);
       const after  = baseValue.slice(insertPos);
       const sep = before && !/\s$/.test(before) ? ' ' : '';
-      const insertion = sep + finalTranscript.trim() + ' ';
+      const _t0 = finalTranscript.trim().replace(/\s*ponto de interrogação\s*/gi,'? ').replace(/\s*ponto de exclamação\s*/gi,'! ').replace(/\s*ponto e v[ií]rgula\s*/gi,'; ').replace(/\s*dois pontos\s*/gi,': ').replace(/\s*ponto final\s*/gi,'. ').replace(/\s*v[ií]rgula\s*/gi,', ').replace(/\s*nova linha\s*/gi,String.fromCharCode(10)).replace(/\s*parágrafo\s*/gi,String.fromCharCode(10,10)).replace(/\s+([.,;:!?])/g,'$1').trim(); const insertion = sep + ((!before || /[.!?]\s*$/.test(before)) ? _t0.charAt(0).toUpperCase() + _t0.slice(1) : _t0) + ' ';
       baseValue = before + insertion + after;
       insertPos = before.length + insertion.length;
       field.value = baseValue;
