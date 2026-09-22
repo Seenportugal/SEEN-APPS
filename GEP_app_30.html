@@ -2919,7 +2919,7 @@ async function sairApp() {
 
   // Terminar sessão e voltar ao painel
   showToast('✓ Sessão terminada.');
-  setTimeout(() => { location.href = 'SEEN_PAINEL_11.html'; }, 600);
+  setTimeout(() => { if(history.length>1){history.back();}else{location.href='about:blank';} }, 600);
 }
 
 // ── Guardar e sair (fecho seguro da app) ──────────────────────
