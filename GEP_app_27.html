@@ -1,0 +1,3386 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GEP — Ficha de Inspeção</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: #d8d5cc;
+    --border-focus: #2d2d2d;
+    --text: #1a1a1a;
+    --text-muted: #777;
+    --label-bg: #2d2d2d;
+    --label-text: #ffffff;
+    --accent: #1a1a1a;
+    --accent-light: #f0ede6;
+    --section-bg: #2d2d2d;
+    --section-text: #fff;
+    --check: #1a1a1a;
+    --radius: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--border);
+    padding: 14px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-header .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .app-header .logo-gep {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .app-header .logo-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text);
+    transition: all .15s;
+  }
+  .btn:hover { background: var(--accent-light); border-color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #333; }
+
+  /* ── Export Dropdown ── */
+  .export-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .export-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    min-width: 190px;
+    z-index: 300;
+    overflow: hidden;
+  }
+  .export-menu.open { display: block; }
+  .export-menu button {
+    display: block;
+    width: 100%;
+    padding: 11px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .export-menu button:hover { background: var(--accent-light); }
+  .export-menu button + button { border-top: 1px solid var(--border); }
+
+  /* ── Progress ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width .3s ease;
+    width: 0%;
+  }
+
+  /* ── Nav tabs ── */
+  .section-nav {
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 60px;
+    z-index: 98;
+  }
+  .section-nav::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 11px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .nav-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  .nav-tab:hover { color: var(--text); }
+
+  /* ── Main ── */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  /* ── Section ── */
+  .form-section {
+    display: none;
+    animation: fadeIn .2s ease;
+  }
+  .form-section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .section-header {
+    background: var(--section-bg);
+    color: var(--section-text);
+    padding: 12px 16px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 0;
+  }
+
+  .section-body {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  /* ── Field row ── */
+  .field-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    border-bottom: 1px solid var(--border);
+    min-height: 44px;
+  }
+  .field-row:last-child { border-bottom: none; }
+
+  @media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+    .field-label { border-bottom: 1px solid var(--border); }
+  }
+
+  .field-label {
+    background: #f8f7f4;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border);
+  }
+
+  .field-input-wrap {
+    padding: 6px 10px;
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  /* ── Ditado por voz ── */
+  .field-input-wrap.has-mic input[type="text"],
+  .field-input-wrap.has-mic textarea {
+    padding-right: 30px;
+  }
+  .mic-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #9a958a;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mic-btn:hover { background: #f0ede7; color: var(--text); }
+  .mic-btn.listening {
+    background: #d33;
+    color: #fff;
+    animation: mic-pulse 1s infinite;
+  }
+  @keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(221,51,51,0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(221,51,51,0); }
+    100% { box-shadow: 0 0 0 0 rgba(221,51,51,0); }
+  }
+  .mic-unsupported-note {
+    font-size: 11px;
+    color: #b08b3a;
+    padding: 4px 14px;
+    background: #fdf6e3;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  textarea,
+  select {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: transparent;
+    resize: none;
+    padding: 4px 2px;
+    line-height: 1.4;
+    text-align: justify;
+  }
+  input[type="text"]:focus,
+  textarea:focus { background: #fafaf8; }
+
+  /* inputs de texto comportam-se como textarea auto-expandível */
+  input[type="text"] {
+    display: block;
+    overflow: hidden;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  textarea { min-height: 28px; }
+  .field-row textarea { min-height: 28px; }
+  .field-row.tall textarea { min-height: 70px; }
+  .field-row.tall .field-input-wrap { align-items: flex-start; padding-top: 10px; }
+
+  /* ── Checkbox row ── */
+  .check-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    border-bottom: 1px solid var(--border);
+    min-height: 44px;
+  }
+  .check-row:last-child { border-bottom: none; }
+  .check-options {
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .check-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    user-select: none;
+  }
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all .12s;
+  }
+  .check-label input[type="checkbox"] { display: none; }
+  .check-label input:checked + .check-box {
+    background: var(--check);
+    border-color: var(--check);
+  }
+  .check-label input:checked + .check-box::after {
+    content: '';
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  /* ── Photo cell ── */
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+  @media (max-width: 400px) {
+    .photos-grid { grid-template-columns: 1fr; }
+  }
+
+  .photo-cell {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--accent-light);
+  }
+  .photo-area {
+    aspect-ratio: 4/3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12px;
+    gap: 6px;
+    transition: background .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-area:hover { background: #e8e5dc; }
+  .photo-area .icon { font-size: 24px; opacity: .4; }
+  .photo-area img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photo-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  /* Botões de acção sobre foto existente — sempre visíveis */
+  .photo-actions {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    flex-direction: row;
+    gap: 4px;
+    z-index: 20;
+  }
+  .photo-area.has-photo .photo-actions { display: flex; }
+  .photo-actions button {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.85;
+  }
+  .photo-actions button:hover { opacity: 1; }
+  .photo-actions .btn-replace { background: rgba(255,255,255,0.9); }
+  .photo-actions .btn-delete  { background: rgba(229,57,53,0.9); color:#fff; }
+  .photo-meta {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .photo-meta input {
+    padding: 6px 10px;
+    font-size: 12px;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+  }
+
+  /* ── Patologia card ── */
+  .patologia-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .patologia-header {
+    background: #2d2d2d;
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .patologia-num {
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .patologia-num input {
+    background: rgba(255,255,255,.15);
+    border: none;
+    color: #fff;
+    width: 40px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .btn-remove {
+    background: rgba(255,255,255,.15);
+    border: none;
+    color: rgba(255,255,255,.7);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .btn-remove:hover { background: rgba(255,0,0,.3); color: #fff; }
+
+  .patologia-body .field-row { grid-template-columns: 110px 1fr; }
+
+  .patologia-photos {
+    padding: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .patologia-photos .photos-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .patologia-photos .photos-grid { padding: 0; }
+
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all .15s;
+  }
+  .add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* ── Large text box ── */
+  .big-textarea {
+    width: 100%;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    resize: none;
+    overflow: hidden;
+    min-height: 140px;
+    padding: 14px 16px;
+    outline: none;
+    background: transparent;
+    line-height: 1.6;
+  }
+
+  /* ── Signature ── */
+  .signature-area {
+    margin: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .signature-canvas-wrap {
+    background: #fff;
+    height: 120px;
+    position: relative;
+    cursor: crosshair;
+  }
+  canvas { display: block; touch-action: none; }
+  .sig-label {
+    background: #f8f7f4;
+    border-top: 1px solid var(--border);
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sig-clear {
+    background: none;
+    border: none;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    padding: 2px 6px;
+  }
+  .sig-clear:hover { color: #c00; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Upload overlay ── */
+  .upload-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .upload-overlay.show { display: flex; }
+  .upload-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 28px 32px;
+    width: min(380px, 90vw);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .upload-card .upload-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .upload-card .upload-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    min-height: 18px;
+  }
+  .upload-track {
+    width: 100%;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .upload-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width .25s ease;
+    width: 0%;
+  }
+  .upload-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <button id="btnVoltar" onclick="voltarLista()" style="display:none;background:none;border:none;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);padding:0;margin-right:10px">← Fichas</button>
+    <span class="logo-gep">GEP</span>
+    <span class="logo-sub" id="headerSub">Gestão de Edifícios e Patologias</span>
+  </div>
+  <div id="lockBadge" style="display:none;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500;white-space:nowrap"></div>
+  <div class="header-actions" id="headerActionsForm" style="display:none">
+    <button class="btn" onclick="saveData().then(()=>autoSaveToCloud())">💾 Guardar agora</button>
+    <button class="btn" onclick="guardarESair()" style="background:var(--accent);color:#fff;border-color:var(--accent)">✓ Guardar e sair</button>
+    <div class="export-dropdown" id="fbDropdown">
+      <button class="btn" onclick="toggleFbMenu(event)">☁️ Supabase ▾</button>
+      <div class="export-menu" id="fbMenu">
+        <button onclick="saveToSupabase(); closeFbMenu()">⬆️ Guardar na nuvem</button>
+        <button onclick="showUserModal(); closeFbMenu()" style="border-top:1px solid var(--border);color:var(--text-muted);font-size:12px">👤 Mudar utilizador</button>
+        <button onclick="sairApp(); closeFbMenu()" style="border-top:1px solid var(--border);color:var(--text-muted);font-size:12px">🚪 Sair</button>
+      </div>
+    </div>
+    <div class="export-dropdown" id="exportDropdown">
+      <button class="btn btn-primary" onclick="toggleExportMenu(event)">⬇ Exportar ▾</button>
+      <div class="export-menu" id="exportMenu">
+        <button onclick="exportWord(); closeExportMenu()">📝 Exportar Word (.doc)</button>
+        <button onclick="exportJSON(); closeExportMenu()">📤 Exportar dados (JSON)</button>
+        <button onclick="importJSONPicker(); closeExportMenu()">📥 Importar dados (JSON)</button>
+      </div>
+    </div>
+  </div>
+  <div class="header-actions" id="headerActionsList">
+    <button onclick="if(history.length>1){history.back();}else{alert('Fecha esta aba para voltar ao Painel.');}" style="background:#0f6e56;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px">⟵ Painel</button>
+    <button class="btn btn-primary" onclick="novaInspeccao()">+ Nova Inspecção</button>
+    <button class="btn" onclick="exportAllJSON()" title="Exportar todas as fichas para JSON">📦 Exportar todas</button>
+    <button class="btn" onclick="showUserModal()">👤 <span id="headerUser">—</span></button>
+    <button class="btn" onclick="sairApp()" title="Terminar sessão">🚪</button>
+  </div>
+</header>
+
+<!-- ── Ecrã de Lista ───────────────────────────────────────── -->
+<div id="listaScreen" style="max-width:680px;margin:0 auto;padding:32px 16px 80px">
+  <div style="margin-bottom:24px">
+    <h2 style="font-size:20px;font-weight:600;margin-bottom:4px">Fichas de Inspecção</h2>
+    <p style="font-size:13px;color:var(--text-muted)" id="listaSubtitle">A carregar...</p>
+  </div>
+  <div id="listaCards" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div id="listaVazia" style="display:none;text-align:center;padding:60px 20px;color:var(--text-muted)">
+    <div style="font-size:48px;margin-bottom:12px">📋</div>
+    <p style="font-size:15px;font-weight:500;margin-bottom:6px">Sem inspecções</p>
+    <p style="font-size:13px">Clica em <strong>"+ Nova Inspecção"</strong> para começar.</p>
+  </div>
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);text-align:right">
+    <button class="btn" onclick="recompressAllPhotos()" style="font-size:12px;color:var(--text-muted)" title="Redimensionar todas as fotos do Supabase para 1024×768">🗜️ Recomprimir todas as fotos (1024×768)</button>
+  </div>
+  <div style="margin-top:10px;padding:12px 16px;background:var(--surface-2,#f0f4ff);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div>
+      <div style="font-size:13px;font-weight:600">☁️ Migração para Supabase Storage</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Executa uma vez para mover as fotos base64 existentes para o Storage (resolve erros de timeout ao guardar).</div>
+    </div>
+    <button class="btn btn-primary" onclick="migratePhotosToStorage()" style="white-space:nowrap;flex-shrink:0">Migrar fotos</button>
+  </div>
+
+  <!-- ── Fichas Apagadas (Arquivo) ── -->
+  <div id="arquivoWrap" style="margin-top:24px">
+    <button id="arquivoToggle" onclick="toggleArquivo()" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:500;color:var(--text-muted);width:100%;text-align:left;font-family:inherit;transition:all .15s">
+      🗂️ Fichas Apagadas
+      <span id="arquivoChevron" style="margin-left:auto;transition:transform .2s">▾</span>
+    </button>
+    <div id="arquivoSection" style="display:none;margin-top:10px">
+      <button class="btn" onclick="importarArquivoJSON('')" style="margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;font-size:13px" title="Importar uma cópia JSON descarregada quando uma ficha foi apagada e recriar a ficha completa">
+        📥 Importar ficha apagada (JSON)
+      </button>
+      <div id="arquivoCards"></div>
+    </div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<nav class="section-nav" id="sectionNav">
+  <div class="nav-tab active" onclick="goTo(0)">1. Identificação</div>
+  <div class="nav-tab" onclick="goTo(1)">2. Caracterização</div>
+  <div class="nav-tab" onclick="goTo(2)">3. Estrutura</div>
+  <div class="nav-tab" onclick="goTo(3)">4. Paredes</div>
+  <div class="nav-tab" onclick="goTo(4)">5. Varandas</div>
+  <div class="nav-tab" onclick="goTo(5)">6. Vãos</div>
+  <div class="nav-tab" onclick="goTo(6)">7. Terraços</div>
+  <div class="nav-tab" onclick="goTo(7)">8. Cobertura</div>
+  <div class="nav-tab" onclick="goTo(8)">9. Garagem</div>
+  <div class="nav-tab" onclick="goTo(9)">10. Fotos</div>
+  <div class="nav-tab" onclick="goTo(10)">11. Patologias</div>
+  <div class="nav-tab" onclick="goTo(11)">12. Considerações</div>
+  <div class="nav-tab" onclick="goTo(12)">13. Térmico</div>
+  <div class="nav-tab" onclick="goTo(13)">14. Soluções</div>
+  <div class="nav-tab" onclick="goTo(14)">15. Estratégia</div>
+</nav>
+
+<main class="main">
+
+<!-- ── 1. IDENTIFICAÇÃO ──────────────────────────────────────── -->
+<div class="form-section active" id="sec0">
+  <div class="section-header">1. Identificação do Edifício</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Processo N.º</div><div class="field-input-wrap"><input type="text" id="f_processo" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Nome do Edifício</div><div class="field-input-wrap"><input type="text" id="f_nome_ed" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Localização / Morada</div><div class="field-input-wrap"><input type="text" id="f_morada" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Localidade</div><div class="field-input-wrap"><input type="text" id="f_localidade" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Concelho</div><div class="field-input-wrap"><input type="text" id="f_concelho" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Código Postal</div><div class="field-input-wrap"><input type="text" id="f_cp" placeholder="0000-000"></div></div>
+    <div class="field-row"><div class="field-label">Administração</div><div class="field-input-wrap"><input type="text" id="f_admin" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Consulta de Projeto</div><div class="field-input-wrap"><input type="text" id="f_projeto" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Ano de Construção</div><div class="field-input-wrap"><input type="text" id="f_ano" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Visitas</div><div class="field-input-wrap"><input type="text" id="f_visitas" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Intervenções Posteriores</div><div class="field-input-wrap"><textarea id="f_intervencoes" placeholder="—"></textarea></div></div>
+    <div class="check-row">
+      <div class="field-label">Proximidade ao Mar</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_mar_sim"><div class="check-box"></div>Sim</label>
+        <label class="check-label"><input type="checkbox" id="c_mar_nao"><div class="check-box"></div>Não</label>
+      </div>
+    </div>
+    <div class="check-row">
+      <div class="field-label">Proximidade Rio/Ria</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_rio_sim"><div class="check-box"></div>Sim</label>
+        <label class="check-label"><input type="checkbox" id="c_rio_nao"><div class="check-box"></div>Não</label>
+      </div>
+    </div>
+    <div class="check-row">
+      <div class="field-label">Exposição Ambiental</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_exp_sev"><div class="check-box"></div>Severas (marítimas)</label>
+        <label class="check-label"><input type="checkbox" id="c_exp_mod"><div class="check-box"></div>Moderadas (sais)</label>
+        <label class="check-label"><input type="checkbox" id="c_exp_fav"><div class="check-box"></div>Favoráveis</label>
+      </div>
+    </div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_s1" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 2. CARACTERIZAÇÃO ─────────────────────────────────────── -->
+<div class="form-section" id="sec1">
+  <div class="section-header">2. Caracterização</div>
+  <div class="section-body">
+    <div class="check-row">
+      <div class="field-label">Tipologia</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_tip_uni"><div class="check-box"></div>Unifamiliar</label>
+        <label class="check-label"><input type="checkbox" id="c_tip_mul"><div class="check-box"></div>Multifamiliar</label>
+        <label class="check-label"><input type="checkbox" id="c_tip_com"><div class="check-box"></div>Comércio/Serviços</label>
+        <label class="check-label"><input type="checkbox" id="c_tip_mis"><div class="check-box"></div>Misto</label>
+      </div>
+    </div>
+    <div class="field-row"><div class="field-label">Nº de Blocos</div><div class="field-input-wrap"><input type="text" id="f_blocos" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Total de Frações</div><div class="field-input-wrap"><input type="text" id="f_fracoes" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Pisos Acima do Solo</div><div class="field-input-wrap"><input type="text" id="f_pisos_ac" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Pisos Abaixo do Solo</div><div class="field-input-wrap"><input type="text" id="f_pisos_ab" placeholder="—"></div></div>
+    <div class="check-row">
+      <div class="field-label">Tipo de Cobertura</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_cob_inc"><div class="check-box"></div>Inclinada</label>
+        <label class="check-label"><input type="checkbox" id="c_cob_pla"><div class="check-box"></div>Plana</label>
+        <label class="check-label"><input type="checkbox" id="c_cob_mis"><div class="check-box"></div>Mista</label>
+      </div>
+    </div>
+    <div class="field-row"><div class="field-label">Garagem</div><div class="field-input-wrap"><input type="text" id="f_garagem" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Configuração em Planta</div><div class="field-input-wrap"><input type="text" id="f_config" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_int_ant" placeholder="—"></textarea></div></div>
+    <div class="field-row tall"><div class="field-label">Síntese do Estado Geral</div><div class="field-input-wrap"><textarea id="f_sintese" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 3. ESTRUTURA ──────────────────────────────────────────── -->
+<div class="form-section" id="sec2">
+  <div class="section-header">3. Estrutura</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Sistema Estrutural</div><div class="field-input-wrap"><input type="text" id="f_sist_est" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Tipo de Laje</div><div class="field-input-wrap"><input type="text" id="f_laje" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_est" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 4. PAREDES ────────────────────────────────────────────── -->
+<div class="form-section" id="sec3">
+  <div class="section-header">4. Paredes Exteriores</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Sistema Construtivo</div><div class="field-input-wrap"><input type="text" id="f_sist_con" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Revestimento Exterior</div><div class="field-input-wrap"><input type="text" id="f_revest" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Isolamento Térmico</div><div class="field-input-wrap"><input type="text" id="f_isol" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Alçado Principal</div><div class="field-input-wrap"><input type="text" id="f_alc_prin" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Alçado Posterior</div><div class="field-input-wrap"><input type="text" id="f_alc_post" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Alçado Lat. Direito</div><div class="field-input-wrap"><input type="text" id="f_alc_dto" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Alçado Lat. Esquerdo</div><div class="field-input-wrap"><input type="text" id="f_alc_esq" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_par" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 5. VARANDAS ───────────────────────────────────────────── -->
+<div class="form-section" id="sec4">
+  <div class="section-header">5. Varandas</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Localização</div><div class="field-input-wrap"><input type="text" id="f_loc_var" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Cota Disponível</div><div class="field-input-wrap"><input type="text" id="f_cota_var" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Tipo de Varanda</div><div class="field-input-wrap"><input type="text" id="f_tipo_var" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Revest. Pavimento</div><div class="field-input-wrap"><input type="text" id="f_rev_pav" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Muros Periféricos</div><div class="field-input-wrap"><input type="text" id="f_muros" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Sistema de Drenagem</div><div class="field-input-wrap"><input type="text" id="f_dren_var" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_var" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 6. VÃOS ───────────────────────────────────────────────── -->
+<div class="form-section" id="sec5">
+  <div class="section-header">6. Vãos Envidraçados</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Tipo de Caixilharia</div><div class="field-input-wrap"><input type="text" id="f_caixilh" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Tipo de Vidro</div><div class="field-input-wrap"><input type="text" id="f_vidro" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Proteção Solar</div><div class="field-input-wrap"><input type="text" id="f_prot_sol" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Estado de Conservação</div><div class="field-input-wrap"><input type="text" id="f_est_vaos" placeholder="—"></div></div>
+    <div class="check-row">
+      <div class="field-label">Tipo de Drenagem</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_dren_vert"><div class="check-box"></div>Vertical</label>
+        <label class="check-label"><input type="checkbox" id="c_dren_horiz"><div class="check-box"></div>Horizontal</label>
+      </div>
+    </div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_vaos" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 7. TERRAÇOS ───────────────────────────────────────────── -->
+<div class="form-section" id="sec6">
+  <div class="section-header">7. Terraços</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Localização</div><div class="field-input-wrap"><input type="text" id="f_loc_ter" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Revest. Pavimento</div><div class="field-input-wrap"><input type="text" id="f_rev_ter" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Sist. Impermeabili.</div><div class="field-input-wrap"><input type="text" id="f_imp_ter" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Sistema Drenagem</div><div class="field-input-wrap"><input type="text" id="f_dren_ter" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Cota Disponível</div><div class="field-input-wrap"><input type="text" id="f_cota_ter" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_ter" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 8. COBERTURA ──────────────────────────────────────────── -->
+<div class="form-section" id="sec7">
+  <div class="section-header">8. Cobertura</div>
+  <div class="section-body">
+    <div class="field-row"><div class="field-label">Revestimento</div><div class="field-input-wrap"><input type="text" id="f_rev_cob" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Suporte</div><div class="field-input-wrap"><input type="text" id="f_sup_cob" placeholder="—"></div></div>
+    <div class="check-row">
+      <div class="field-label">Laje Esteira</div>
+      <div class="check-options">
+        <label class="check-label"><input type="checkbox" id="c_laje_sim"><div class="check-box"></div>Sim</label>
+        <label class="check-label"><input type="checkbox" id="c_laje_nao"><div class="check-box"></div>Não</label>
+      </div>
+    </div>
+    <div class="field-row"><div class="field-label">Isolamento Térmico</div><div class="field-input-wrap"><input type="text" id="f_isol_cob" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Impermeabilização</div><div class="field-input-wrap"><input type="text" id="f_imp_cob" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Sistema Drenagem</div><div class="field-input-wrap"><input type="text" id="f_dren_cob" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Platibandas</div><div class="field-input-wrap"><input type="text" id="f_plat" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Corpos Emergentes</div><div class="field-input-wrap"><input type="text" id="f_corp_em" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Equipamentos</div><div class="field-input-wrap"><input type="text" id="f_equip" placeholder="—"></div></div>
+    <div class="field-row"><div class="field-label">Estado de Conservação</div><div class="field-input-wrap"><input type="text" id="f_est_cob" placeholder="—"></div></div>
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_cob" placeholder="—"></textarea></div></div>
+  </div>
+</div>
+
+<!-- ── 9. GARAGEM ────────────────────────────────────────────── -->
+<div class="form-section" id="sec8">
+  <div class="section-header">9. Garagem</div>
+  <div class="section-body">
+    <div class="field-row tall"><div class="field-label">Observações</div><div class="field-input-wrap"><textarea id="f_obs_gar" placeholder="—" style="min-height:120px"></textarea></div></div>
+  </div>
+  <div class="section-header" style="margin-top:16px">Fotos da Garagem</div>
+  <div class="section-body">
+    <div class="photos-grid" id="fotos_garagem">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ── 10. FOTOS DO EDIFÍCIO ─────────────────────────────────── -->
+<div class="form-section" id="sec9">
+  <div class="section-header">10. Fotos do Edifício</div>
+  <div class="section-body">
+    <div id="fotos_edificio" style="padding:16px;display:flex;flex-direction:column;gap:12px;"></div>
+    <div style="padding:0 16px 16px">
+      <button class="add-btn" onclick="addParFotosEdificio()">+ Adicionar foto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 11. PATOLOGIAS ────────────────────────────────────────── -->
+<div class="form-section" id="sec10">
+  <div class="section-header">11. Patologias Observadas</div>
+  <div class="section-body" style="border-top:1.5px solid var(--border); border-radius:var(--radius)">
+    <div id="patologias_list" style="padding:16px"></div>
+    <div style="margin-top:8px; padding:16px; border-top:1.5px solid var(--border); display:flex; gap:8px; flex-wrap:wrap">
+      <button class="add-btn" style="flex:1; min-width:180px" onclick="addPatologia()">+ Adicionar patologia</button>
+      <button class="add-btn" style="flex:1; min-width:180px" onclick="document.getElementById('pato_import_input').click()">📥 Importar do PATO</button>
+    </div>
+    <input type="file" id="pato_import_input" accept="application/json" style="display:none" onchange="importPatoJSON(this.files[0])">
+  </div>
+</div>
+
+<!-- ── 12. CONSIDERAÇÕES SOBRE AS PATOLOGIAS ─────────────────── -->
+<div class="form-section" id="sec11">
+  <div class="section-header">12. Considerações sobre as Patologias Observadas</div>
+  <div class="section-body">
+    <textarea class="big-textarea" id="f_consideracoes" placeholder="Considerações gerais sobre as patologias observadas, sua relevância, prioridade de intervenção e impacto no edifício..."></textarea>
+  </div>
+</div>
+
+<!-- ── 13. DESEMPENHO TÉRMICO ────────────────────────────────── -->
+<div class="form-section" id="sec12">
+  <div class="section-header">13. Desempenho Térmico</div>
+  <div class="section-body">
+    <textarea class="big-textarea" id="f_termico" placeholder="Diagnóstico do desempenho térmico..."></textarea>
+  </div>
+</div>
+
+<!-- ── 14. SOLUÇÕES PROPOSTAS ────────────────────────────────── -->
+<div class="form-section" id="sec13">
+  <div class="section-header">14. Soluções Propostas</div>
+  <div class="section-body"><div class="field-label" style="padding:2px 2px 0">Estratégia de reabilitação por elemento construtivo.</div></div>
+
+  <div class="section-header" style="margin-top:20px">14.1. Cobertura</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_cobertura" placeholder="—"></textarea></div>
+
+  <div class="section-header" style="margin-top:20px">14.2. Terraços</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_terracos" placeholder="—"></textarea></div>
+
+  <div class="section-header" style="margin-top:20px">14.3. Varandas</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_varandas" placeholder="—"></textarea></div>
+
+  <div class="section-header" style="margin-top:20px">14.4. Alçados</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_alcados" placeholder="—"></textarea></div>
+
+  <div class="section-header" style="margin-top:20px">14.5. Vãos Envidraçados</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_vaos_env" placeholder="—"></textarea></div>
+
+  <div class="section-header" style="margin-top:20px">14.6. Garagem</div>
+  <div class="section-body"><textarea class="big-textarea" id="f_sol_garagem" placeholder="—"></textarea></div>
+</div>
+
+<!-- ── 15. ESTRATÉGIA ────────────────────────────────────────── -->
+<div class="form-section" id="sec14">
+  <div class="section-header">15. Estratégia de Renovação</div>
+  <div class="section-body">
+    <textarea class="big-textarea" id="f_estrategia" placeholder="Estratégia de reabilitação faseada..."></textarea>
+  </div>
+</div>
+
+</main>
+
+<div class="bottom-nav">
+  <button class="btn" id="btnPrev" onclick="prevSection()">← Anterior</button>
+  <span style="font-size:12px;color:var(--text-muted);align-self:center" id="pageIndicator">1 / 15</span>
+  <button class="btn btn-primary" id="btnNext" onclick="nextSection()">Seguinte →</button>
+</div>
+
+<!-- ── Modal Nome de Utilizador ──────────────────────────────── -->
+<div id="userModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:10px;max-width:380px;width:100%;padding:28px;text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">👤</div>
+    <h2 style="font-size:17px;font-weight:600;margin-bottom:8px">Como te chamas?</h2>
+    <p style="font-size:13px;color:#777;margin-bottom:20px">O teu nome identifica quem está a editar e evita conflitos com outros utilizadores.</p>
+    <input type="text" id="userNameInput" placeholder="Ex: João Silva" maxlength="40"
+      style="width:100%;border:1.5px solid #d8d5cc;border-radius:6px;padding:10px 14px;font-size:15px;font-family:inherit;outline:none;text-align:center;margin-bottom:16px">
+    <button onclick="confirmUserName()" class="btn btn-primary" style="width:100%;padding:12px">Confirmar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Overlay de progresso de upload de fotos -->
+<div class="upload-overlay" id="uploadOverlay">
+  <div class="upload-card">
+    <div class="upload-title">☁️ A carregar fotos para a nuvem</div>
+    <div class="upload-sub" id="uploadSubtitle">A preparar...</div>
+    <div class="upload-track"><div class="upload-fill" id="uploadFill"></div></div>
+    <div class="upload-count" id="uploadCount">0 / 0</div>
+  </div>
+</div>
+<input type="file" id="importJSONInput" accept=".json" style="display:none" onchange="importJSON(event)">
+<input type="file" id="importArquivoInput" accept=".json" style="display:none" onchange="importArquivoInputChange(event)">
+
+<script>
+// ── State ────────────────────────────────────────────────────
+let currentSection = 0;
+const totalSections = 15;
+let patCount = 0;
+let fotoEdCount = 0;
+
+// Auto-ajuste de altura que nunca fica abaixo do min-height da caixa
+function autoGrow(ta){
+  if(!ta) return;
+  var min = parseInt(getComputedStyle(ta).minHeight) || 0;
+  ta.style.height = 'auto';
+  ta.style.height = Math.max(ta.scrollHeight, min) + 'px';
+}
+
+// ── Navigation ───────────────────────────────────────────────
+function goTo(n) {
+  document.querySelectorAll('.form-section').forEach((s,i) => {
+    s.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    t.classList.toggle('active', i === n);
+  });
+  currentSection = n;
+  document.getElementById('pageIndicator').textContent = `${n+1} / ${totalSections}`;
+  document.getElementById('progressFill').style.width = `${((n+1)/totalSections)*100}%`;
+  document.getElementById('btnPrev').disabled = n === 0;
+  document.getElementById('btnNext').textContent = n === totalSections-1 ? '✓ Concluir' : 'Seguinte →';
+
+  // Ajustar altura das textareas da secção agora visível
+  const sec = document.querySelectorAll('.form-section')[n];
+  if (sec) sec.querySelectorAll('textarea').forEach(autoGrow);
+
+  // Scroll nav tab into view
+  const tabs = document.querySelectorAll('.nav-tab');
+  tabs[n].scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function nextSection() {
+  if (currentSection < totalSections - 1) goTo(currentSection + 1);
+  else { showToast('✓ Formulário concluído!'); saveData(); }
+}
+function prevSection() {
+  if (currentSection > 0) goTo(currentSection - 1);
+}
+
+// ── Photo cells ───────────────────────────────────────────────
+function makePhotoCell(id, label='') {
+  const div = document.createElement('div');
+  div.className = 'photo-cell';
+  div.innerHTML = `
+    <div class="photo-area" id="area_${id}">
+      <span class="icon">📷</span>
+      <span>Clique para adicionar foto</span>
+      <input type="file" accept="image/*" id="file_${id}" onchange="loadPhoto(this,'${id}')">
+      <div class="photo-actions" id="actions_${id}">
+        <button class="btn-replace" onclick="replacePhoto('${id}',event)">🔄 Substituir</button>
+        <button class="btn-delete"  onclick="deletePhoto('${id}',event)">🗑️ Apagar</button>
+      </div>
+    </div>
+    <div class="photo-meta">
+      <input type="text" id="pnum_${id}" placeholder="N.º da foto" style="border-bottom:1px solid var(--border)">
+      <input type="text" id="pdesc_${id}" placeholder="${label || 'Descrição / Localização'}">
+    </div>
+  `;
+  return div;
+}
+
+function _applyPhoto(area, id, src) {
+  let img = area.querySelector('img');
+  if (!img) { img = document.createElement('img'); area.insertBefore(img, area.firstChild); }
+  img.src = src;
+  area.querySelectorAll('span').forEach(s => s.remove());
+  area.classList.add('has-photo');
+  // Desligar pointer-events do file input para os botões sobreposto funcionarem
+  const fi = area.querySelector('input[type="file"]');
+  if (fi) fi.style.pointerEvents = 'none';
+}
+
+function loadPhoto(input, id) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const area = document.getElementById('area_' + id);
+    _applyPhoto(area, id, e.target.result);
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function replacePhoto(id, e) {
+  e.stopPropagation();
+  const fi = document.getElementById('file_' + id);
+  if (!fi) return;
+  fi.style.pointerEvents = '';   // reactivar temporariamente
+  fi.value = '';
+  fi.onchange = function() {
+    fi.style.pointerEvents = 'none';
+    loadPhoto(fi, id);
+  };
+  fi.click();
+}
+
+function deletePhoto(id, e) {
+  e.stopPropagation();
+  const area = document.getElementById('area_' + id);
+  area.querySelector('img')?.remove();
+  area.classList.remove('has-photo');
+  const icon = document.createElement('span'); icon.className = 'icon'; icon.textContent = '📷';
+  const txt  = document.createElement('span'); txt.textContent = 'Clique para adicionar foto';
+  const fi   = document.getElementById('file_' + id);
+  area.insertBefore(txt, fi);
+  area.insertBefore(icon, txt);
+  if (fi) { fi.style.pointerEvents = ''; fi.value = ''; fi.onchange = function(){ loadPhoto(fi, id); }; }
+  dbSet('photos', id, { src: null, metas: [] });
+}
+
+function buildGaragemPhotos() {
+  const grid = document.getElementById('fotos_garagem');
+  for (let i = 1; i <= 2; i++) {
+    grid.appendChild(makePhotoCell('gar_' + i));
+  }
+}
+
+function addFotoEdificio() {
+  fotoEdCount++;
+  const container = document.getElementById('fotos_edificio');
+  // Adicionar à última linha se ainda tiver espaço (< 2 células), senão criar nova linha
+  let lastRow = container.lastElementChild;
+  if (!lastRow || lastRow.children.length >= 2) {
+    lastRow = document.createElement('div');
+    lastRow.className = 'photos-grid';
+    lastRow.style.padding = '0';
+    container.appendChild(lastRow);
+  }
+  lastRow.appendChild(makePhotoCell('ed_' + fotoEdCount, 'Localização'));
+}
+
+function addParFotosEdificio() {
+  addFotoEdificio();
+  addFotoEdificio();
+}
+
+// ── Patologias ────────────────────────────────────────────────
+function makePatologiaCard(n) {
+  const div = document.createElement('div');
+  div.className = 'patologia-card';
+  div.id = 'pat_' + n;
+  div.innerHTML = `
+    <div class="patologia-header">
+      <div class="patologia-num">
+        Patologia N.º <input type="text" id="pat_${n}_num" value="${n}" size="3">
+      </div>
+      <button class="btn-remove" onclick="removePatologia(${n})">✕</button>
+    </div>
+    <div class="patologia-body">
+      <div class="field-row" style="border-top:1px solid var(--border)">
+        <div class="field-label" style="font-size:13px">Descrição</div>
+        <div class="field-input-wrap"><textarea id="pat_${n}_desc" placeholder="Descreva a patologia observada..."></textarea></div>
+      </div>
+      <div class="field-row tall">
+        <div class="field-label" style="font-size:13px">Causa</div>
+        <div class="field-input-wrap"><textarea id="pat_${n}_causa" placeholder="Causa provável..."></textarea></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label" style="font-size:13px">Localização</div>
+        <div class="field-input-wrap"><textarea id="pat_${n}_loc" rows="1" style="overflow:hidden;min-height:0;height:auto;" placeholder="Localização da patologia..."></textarea></div>
+      </div>
+    </div>
+    <div class="patologia-photos">
+      <div class="photos-title">Registo Fotográfico</div>
+      <div class="photos-grid" id="photos_pat${n}">
+        ${[1,2].map(i => `
+        <div class="photo-cell">
+          <div class="photo-area" id="area_pat${n}_${i}">
+            <span class="icon">📷</span>
+            <span>Clique para adicionar foto</span>
+            <input type="file" accept="image/*" id="file_pat${n}_${i}" onchange="loadPhoto(this,'pat${n}_${i}')">
+            <div class="photo-actions" id="actions_pat${n}_${i}">
+              <button class="btn-replace" onclick="replacePhoto('pat${n}_${i}',event)">🔄 Substituir</button>
+              <button class="btn-delete"  onclick="deletePhoto('pat${n}_${i}',event)">🗑️ Apagar</button>
+            </div>
+          </div>
+          <div class="photo-meta">
+            <input type="text" id="pnum_pat${n}_${i}" placeholder="N.º" style="border-bottom:1px solid var(--border)">
+          </div>
+        </div>`).join('')}
+      </div>
+      <button class="add-btn" style="margin-top:8px" onclick="addPatFoto(${n})">+ Adicionar foto</button>
+    </div>
+  `;
+  return div;
+}
+
+function addPatologia() {
+  patCount++;
+  document.getElementById('patologias_list').appendChild(makePatologiaCard(patCount));
+}
+
+// Acrescenta mais uma célula de foto a uma patologia (sem limite — usado
+// manualmente e pela importação do PATO, que pode trazer várias fotos por patologia)
+function addPatFoto(n) {
+  const grid = document.getElementById('photos_pat' + n);
+  if (!grid) return null;
+  const i = grid.children.length + 1;
+  const cell = document.createElement('div');
+  cell.className = 'photo-cell';
+  cell.innerHTML = `
+    <div class="photo-area" id="area_pat${n}_${i}">
+      <span class="icon">📷</span>
+      <span>Clique para adicionar foto</span>
+      <input type="file" accept="image/*" id="file_pat${n}_${i}" onchange="loadPhoto(this,'pat${n}_${i}')">
+      <div class="photo-actions" id="actions_pat${n}_${i}">
+        <button class="btn-replace" onclick="replacePhoto('pat${n}_${i}',event)">🔄 Substituir</button>
+        <button class="btn-delete"  onclick="deletePhoto('pat${n}_${i}',event)">🗑️ Apagar</button>
+      </div>
+    </div>
+    <div class="photo-meta">
+      <input type="text" id="pnum_pat${n}_${i}" placeholder="N.º" style="border-bottom:1px solid var(--border)">
+    </div>`;
+  grid.appendChild(cell);
+  return i;
+}
+
+function removePatologia(n) {
+  const el = document.getElementById('pat_' + n);
+  if (el) el.remove();
+}
+
+// ── Importar patologias do PATO (ficheiro JSON exportado pela app PATO) ─
+function _patoSelecionados(item) {
+  const elementos = [
+    ...(item.elementos || []).filter((e, i) => item.elementosSel && item.elementosSel[i]),
+    ...((item.elementoOutro || '').trim() ? [item.elementoOutro.trim()] : [])
+  ];
+  const causas = [
+    ...(item.causas || []).filter((c, i) => item.causasSel && item.causasSel[i]),
+    ...((item.causaOutro || '').trim() ? [item.causaOutro.trim()] : [])
+  ];
+  return { elementos, causas };
+}
+
+async function importPatoJSON(file) {
+  if (!file) return;
+  if (!_formReady) {
+    showToast('⚠️ Ficha ainda a carregar — tenta novamente num instante.');
+    document.getElementById('pato_import_input').value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    document.getElementById('pato_import_input').value = '';
+    let payload;
+    try { payload = JSON.parse(e.target.result); }
+    catch (err) { showToast('❌ Ficheiro inválido'); return; }
+
+    const state = payload.state || payload;
+    if (!state || !state.patologias) { showToast('❌ Este ficheiro não parece vir da app PATO'); return; }
+
+    const processoAtual = (document.getElementById('f_processo')?.value || '').trim();
+    const processoPato  = (state.header?.processo || '').trim();
+    if (processoAtual && processoPato && processoAtual !== processoPato) {
+      const continuar = confirm(
+        `Esta ficha é do processo "${processoAtual}", mas o ficheiro do PATO é do processo "${processoPato}".\n\nImportar mesmo assim?`
+      );
+      if (!continuar) return;
+    }
+
+    const observadas = [
+      ...state.patologias.filter(p => p.observada),
+      ...(state.custom || [])
+    ];
+    if (!observadas.length) {
+      showToast('ℹ️ O ficheiro do PATO não tem nenhuma patologia marcada como observada');
+      return;
+    }
+
+    let totalFotos = 0;
+    for (const item of observadas) {
+      addPatologia();
+      const n = patCount;
+      const { elementos, causas } = _patoSelecionados(item);
+
+      let desc = (item.tipo || '(patologia não listada)').trim();
+      if (elementos.length) desc += `\n\nElemento construtivo: ${elementos.join(', ')}`;
+      if ((item.obs || '').trim()) desc += `\n\nObservações (PATO): ${item.obs.trim()}`;
+
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = val;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      setVal(`pat_${n}_desc`,  desc);
+      setVal(`pat_${n}_causa`, causas.join('; '));
+      setVal(`pat_${n}_loc`,   item.local || '');
+
+      // Todas as fotos, sem limite — as 2 primeiras usam as células já
+      // criadas pelo cartão, e para as restantes vamos criando mais células.
+      const fotos = item.fotos || [];
+      fotos.forEach((f, i) => {
+        if (!f || !f.dataUrl) return;
+        const idx = (i < 2) ? (i + 1) : addPatFoto(n);
+        const area = document.getElementById(`area_pat${n}_${idx}`);
+        if (area) _applyPhoto(area, area.id, f.dataUrl);
+      });
+      totalFotos += fotos.length;
+    }
+
+    await saveData();
+    await autoSaveToCloud();
+
+    showToast(`✅ ${observadas.length} patologia(s) e ${totalFotos} foto(s) importadas do PATO`);
+  };
+  reader.readAsText(file);
+}
+
+// ── Signature ─────────────────────────────────────────────────
+function initSignature() {
+  const canvas = document.getElementById('sigCanvas');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  let lastX = 0, lastY = 0;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return [(src.clientX - rect.left) * (canvas.width / rect.width),
+            (src.clientY - rect.top) * (canvas.height / rect.height)];
+  }
+
+  function start(e) {
+    e.preventDefault();
+    drawing = true;
+    [lastX, lastY] = getPos(e);
+  }
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const [x, y] = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+  }
+  function stop() { drawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stop);
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('sigCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── Base de dados (IndexedDB para fotos, localStorage para campos) ────
+const DB_NAME = 'gep_db';
+const DB_VERSION = 2;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) { resolve(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('photos'))   d.createObjectStore('photos');
+      if (!d.objectStoreNames.contains('meta'))     d.createObjectStore('meta');
+      if (!d.objectStoreNames.contains('settings')) d.createObjectStore('settings');
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbSet(store, key, value) {
+  return openDB().then(d => new Promise((resolve, reject) => {
+    const tx  = d.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(value, key);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  }));
+}
+
+function dbGet(store, key) {
+  return openDB().then(d => new Promise((resolve, reject) => {
+    const tx  = d.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  }));
+}
+
+function dbGetAll(store) {
+  return openDB().then(d => new Promise((resolve, reject) => {
+    const tx       = d.transaction(store, 'readonly');
+    const results  = {};
+    const curReq   = tx.objectStore(store).openCursor();
+    curReq.onsuccess = e => {
+      const cursor = e.target.result;
+      if (cursor) { results[cursor.key] = cursor.value; cursor.continue(); }
+      else resolve(results);
+    };
+    curReq.onerror = e => reject(e.target.error);
+  }));
+}
+
+function compressPhoto(src, maxW=1024, maxH=768, quality=0.82) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';   // necessário para URLs do Supabase Storage
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width, maxH / img.height);
+      const w = Math.round(img.width  * scale);
+      const h = Math.round(img.height * scale);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(src); // fallback sem compressão
+    img.src = src;
+  });
+}
+
+// ── Guardar ───────────────────────────────────────────────────
+async function saveData() {
+  try {
+    // 1. Campos de texto / checkbox → localStorage
+    const fields = {};
+    document.querySelectorAll('input[type=text][id], input[type=date][id], input[type=number][id], textarea[id]').forEach(el => {
+      fields[el.id] = el.value;
+    });
+    document.querySelectorAll('input[type=checkbox][id]').forEach(el => {
+      fields[el.id] = el.checked;
+    });
+    localStorage.setItem('gep_fields', JSON.stringify({
+      fields,
+      patCount,
+      fotoEdCount
+    }));
+
+    // 2. Fotos + metas → IndexedDB (com compressão)
+    const photoAreas = document.querySelectorAll('.photo-area[id]');
+    const saves = [];
+    photoAreas.forEach(area => {
+      const img  = area.querySelector('img');
+      const cell = area.closest('.photo-cell');
+      const metas = cell ? Array.from(cell.querySelectorAll('.photo-meta input')).map(i => i.value) : [];
+      if (img && img.src) {
+        // Se a foto já está no Storage (img.src é uma URL http/https), NÃO a
+        // voltamos a descarregar nem a recomprimir. Antes, cada gravação
+        // re-baixava+recomprimia a foto (bloqueando o thread) e gravava-a de
+        // novo como base64 — o que fazia o auto-save da nuvem julgar que havia
+        // fotos por enviar e mostrar o overlay de upload a cada poucos segundos.
+        // Agora preservamos apenas { url, metas }; as metas são sempre actualizadas.
+        if (/^https?:/i.test(img.src)) {
+          saves.push(dbSet('photos', area.id, { url: img.src, metas }));
+        } else {
+          // base64 nova (foto acabada de adicionar) → comprimir uma única vez
+          saves.push(
+            compressPhoto(img.src).then(compressed =>
+              dbSet('photos', area.id, { src: compressed, metas })
+            )
+          );
+        }
+      } else {
+        saves.push(dbSet('photos', area.id, { src: null, metas }));
+      }
+    });
+    await Promise.all(saves);
+  } catch(e) {
+    console.error('Erro ao guardar:', e);
+  }
+}
+
+// ── Carregar ──────────────────────────────────────────────────
+async function loadData() {
+  try {
+    // 1. Campos de texto
+    const raw = localStorage.getItem('gep_fields');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+
+    // Recriar fotos do edifício
+    if (saved.fotoEdCount && saved.fotoEdCount > fotoEdCount) {
+      const target = Math.ceil(saved.fotoEdCount / 2) * 2; // sempre par
+      for (let i = 0; i < target - fotoEdCount; i++) addFotoEdificio();
+    }
+    // Recriar patologias
+    if (saved.patCount && saved.patCount > patCount) {
+      for (let i = 0; i < saved.patCount - patCount; i++) addPatologia();
+    }
+
+    // Restaurar campos
+    if (saved.fields) {
+      Object.entries(saved.fields).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = val;
+        else {
+          const patNumMatch = id.match(/^pat_(\d+)_num$/);
+          if (patNumMatch && (val === null || val === undefined || val === '')) {
+            el.value = patNumMatch[1];
+            return;
+          }
+          el.value = val;
+        }
+      });
+    }
+
+    // 2. Fotos do IndexedDB
+    const allPhotos = await dbGetAll('photos');
+    Object.entries(allPhotos).forEach(([areaId, photoData]) => {
+      if (!photoData) return;
+      const displaySrc = photoData.src || photoData.url || null;
+      if (!displaySrc) return;
+      const area = document.getElementById(areaId);
+      if (!area) return;
+      _applyPhoto(area, areaId, displaySrc);
+      const cell = area.closest('.photo-cell');
+      if (cell) {
+        const metaInputs = cell.querySelectorAll('.photo-meta input');
+        (photoData.metas || []).forEach((val, i) => {
+          if (metaInputs[i]) metaInputs[i].value = val;
+        });
+      }
+    });
+
+    showToast('✓ Dados carregados');
+    // Re-ajustar altura de todos os textareas após restauro
+    document.querySelectorAll('textarea').forEach(autoGrow);
+  } catch(e) {
+    console.error('Erro ao carregar:', e);
+  }
+}
+
+function exportPDF() {
+  showToast('💡 Use Ctrl+P / Imprimir → Guardar como PDF');
+  setTimeout(() => window.print(), 800);
+}
+
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  document.getElementById('exportMenu').classList.toggle('open');
+}
+function closeExportMenu() {
+  document.getElementById('exportMenu').classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('exportDropdown').contains(e.target)) {
+    closeExportMenu();
+  }
+});
+
+async function exportWord() {
+  showToast('⏳ A gerar ficheiro Word...');
+
+  // ── Recolher dados do formulário ──────────────────────────────
+  function getVal(id) {
+    const el = document.getElementById(id);
+    return el ? (el.value || '—') : '—';
+  }
+  function getChecked(row) {
+    const checked = [];
+    row.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+      const lbl = cb.closest('.check-label');
+      if (lbl) checked.push(lbl.textContent.trim());
+    });
+    return checked.length ? checked.join(', ') : '—';
+  }
+
+  // ── Assinatura ────────────────────────────────────────────────
+  let sigImg = '';
+  try {
+    const canvas = document.getElementById('sigCanvas');
+    sigImg = `<img src="${canvas.toDataURL('image/png')}" style="max-width:280px;max-height:100px;">`;
+  } catch(e) {}
+
+  // ── Construir secções HTML ────────────────────────────────────
+  let sectionsHtml = '';
+
+  for (const section of document.querySelectorAll('.form-section')) {
+    // Cada section-header dentro da section
+    for (const header of section.querySelectorAll('.section-header')) {
+      let tableRows = '';
+      const body = header.nextElementSibling;
+      if (body && body.classList.contains('section-body')) {
+        // Campos de texto normais (excluindo os que estão dentro de patologia-card)
+        for (const row of body.querySelectorAll('.field-row')) {
+          if (row.closest('.patologia-card')) continue;
+          const label = row.querySelector('.field-label')?.textContent.trim() || '';
+          const input = row.querySelector('input[type="text"], input[type="date"], input[type="number"], textarea');
+          const value = (input?.value || '').trim() || '—';
+          tableRows += `<tr><td class="lbl">${label}</td><td class="val">${value.replace(/\n/g,'<br>')}</td></tr>`;
+        }
+        // Checkboxes (excluindo patologia-card)
+        for (const row of body.querySelectorAll('.check-row')) {
+          if (row.closest('.patologia-card')) continue;
+          const label = row.querySelector('.field-label')?.textContent.trim() || '';
+          tableRows += `<tr><td class="lbl">${label}</td><td class="val">${getChecked(row)}</td></tr>`;
+        }
+        // Big textareas (excluindo patologia-card)
+        for (const ta of body.querySelectorAll('.big-textarea')) {
+          if (ta.closest('.patologia-card')) continue;
+          const value = (ta.value || '').trim().replace(/\n/g,'<br>') || '—';
+          tableRows += `<tr><td class="val" colspan="2" style="padding:12px;text-align:justify;mso-text-align:justify">${value}</td></tr>`;
+        }
+        // Fotos (excluindo patologia-card)
+        let i = 0;
+        for (const cell of body.querySelectorAll('.photo-cell')) {
+          if (cell.closest('.patologia-card')) continue;
+          const img = cell.querySelector('.photo-area img');
+          if (!img) { i++; continue; }
+          const inputs = cell.querySelectorAll('.photo-meta input');
+          const numFoto = inputs[0]?.value || '';
+          const desc = inputs[1]?.value || inputs[0]?.value || '';
+          const caption = [numFoto && `N.º ${numFoto}`, desc].filter(Boolean).join(' — ') || `Foto ${i+1}`;
+          const compressed = await compressPhoto(img.src, 400, 300, 0.80);
+          tableRows += `<tr><td class="lbl">${caption}</td><td class="val"><img src="${compressed}" width="160" height="120" style="width:160px;height:auto;display:block;"></td></tr>`;
+          i++;
+        }
+      }
+      if (tableRows) {
+        sectionsHtml += `<h2>${header.textContent.trim()}</h2><table>${tableRows}</table>`;
+      } else if (!header.closest('.patologia-card')) {
+        sectionsHtml += `<h2>${header.textContent.trim()}</h2>`;
+      }
+    }
+
+    // Patologias — cada card como sub-secção
+    let pi = 0;
+    for (const card of section.querySelectorAll('.patologia-card')) {
+      const num = card.querySelector('.patologia-num input')?.value || (pi + 1);
+      let rows = '';
+      for (const row of card.querySelectorAll('.field-row')) {
+        const label = row.querySelector('.field-label')?.textContent.trim() || '';
+        const input = row.querySelector('input[type="text"], textarea');
+        const value = (input?.value || '').trim().replace(/\n/g,'<br>') || '—';
+        rows += `<tr><td class="lbl">${label}</td><td class="val">${value}</td></tr>`;
+      }
+      // Fotos das patologias — 2 por linha
+      const fotoCells = Array.from(card.querySelectorAll('.photo-cell'))
+        .filter(cell => cell.querySelector('.photo-area img'));
+      if (fotoCells.length) {
+        for (let j = 0; j < fotoCells.length; j += 2) {
+          let cellsHtml = '';
+          for (let k = j; k < Math.min(j + 2, fotoCells.length); k++) {
+            const cell    = fotoCells[k];
+            const img     = cell.querySelector('.photo-area img');
+            const numFoto = cell.querySelector('.photo-meta input')?.value || '';
+            const caption = numFoto ? `Foto N.º ${numFoto}` : `Foto ${k + 1}`;
+            const compressed = await compressPhoto(img.src, 400, 300, 0.78);
+            cellsHtml += `<td class="photo-td">
+              <img src="${compressed}" width="200" height="150" style="width:200px;height:150px;object-fit:cover;display:block;"><br>
+              <span style="font-size:9pt;color:#555">${caption}</span>
+            </td>`;
+          }
+          if (fotoCells.length % 2 !== 0 && j + 2 > fotoCells.length) {
+            cellsHtml += `<td class="photo-td"></td>`;
+          }
+          rows += `<tr>${cellsHtml}</tr>`;
+        }
+      }
+      if (rows) {
+        sectionsHtml += `<h2>Patologia N.º ${num}</h2><table>${rows}</table>`;
+      }
+      pi++;
+    }
+  }
+
+  // ── Template Word (HTML Namespace) ────────────────────────────
+  const today = new Date().toLocaleDateString('pt-PT');
+  const nomeEd = document.getElementById('f_nome_ed')?.value || 'Sem nome';
+
+  const wordHtml = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>GEP — Ficha de Inspeção</title>
+<!--[if gte mso 9]>
+<xml><w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>90</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+</w:WordDocument></xml>
+<![endif]-->
+<style>
+  @page { size:A4; margin:2cm 2.2cm; }
+  body { font-family:Arial,sans-serif; font-size:10.5pt; color:#1a1a1a; }
+  h1 { font-size:18pt; margin:0 0 4px; color:#1a1a1a; }
+  .subtitle { font-size:9pt; color:#777; margin-bottom:20px; }
+  h2 { font-size:10pt; font-weight:bold; background:#2d2d2d; color:#fff;
+       padding:6px 10px; margin:18px 0 0; letter-spacing:.3px; text-transform:uppercase;
+       page-break-after:avoid; mso-keep-with-next:yes; }
+  table { width:100%; border-collapse:collapse; margin-bottom:0; table-layout:fixed;
+          page-break-inside:avoid; mso-keep-together:yes; }
+  td { border:1px solid #ccc; padding:6px 10px; vertical-align:top; font-size:10pt;
+       word-wrap:break-word; overflow-wrap:anywhere; word-break:break-all; white-space:pre-wrap; }
+  td.lbl { background:#f8f7f4; font-weight:bold; width:38%; color:#333; }
+  td.val { color:#1a1a1a; width:62%; text-align:justify; mso-text-align:justify; }
+  td.val img { max-width:160px; max-height:120px; width:160px; height:auto; display:block; }
+  td.photo-td { width:50%; border:1px solid #ccc; padding:8px; text-align:center; vertical-align:top; }
+  td.photo-td img { width:200px; height:150px; display:block; margin:0 auto; }
+  .sig-section { margin-top:30px; border-top:2px solid #2d2d2d; padding-top:16px; }
+  .footer { margin-top:30px; font-size:8pt; color:#aaa; text-align:center; border-top:1px solid #eee; padding-top:8px; }
+</style>
+</head>
+<body>
+<h1>GEP — Ficha de Inspeção</h1>
+<div class="subtitle">Gestão de Edifícios e Patologias &nbsp;·&nbsp; ${nomeEd} &nbsp;·&nbsp; Gerado em ${today}</div>
+
+${sectionsHtml}
+
+<div class="footer">GEP — Gestão de Edifícios e Patologias</div>
+</body>
+</html>`;
+
+  // ── Download ──────────────────────────────────────────────────
+  const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const filename = `GEP_Ficha_${(nomeEd).replace(/[^a-zA-Z0-9À-ú]/g,'_')}_${new Date().toISOString().split('T')[0]}.doc`;
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => showToast('✓ Ficheiro Word gerado!'), 600);
+}
+
+// ── Exportar dados JSON ───────────────────────────────────────
+// ── Exportar dados JSON ───────────────────────────────────────
+async function exportJSON() {
+  try {
+    showToast('⏳ A preparar exportação...');
+
+    // 1. Campos de texto e checkboxes (localStorage)
+    const fieldsRaw = localStorage.getItem('gep_fields');
+    const fieldsData = fieldsRaw ? JSON.parse(fieldsRaw) : {};
+
+    // 2. Fotos (IndexedDB)
+    const allPhotos = await dbGetAll('photos');
+
+    const exportObj = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      fields: fieldsData,
+      photos: allPhotos
+    };
+
+    const nomeEd = (fieldsData.fields && fieldsData.fields.f_nome_ed) || 'GEP';
+    const filename = `GEP_dados_${nomeEd.replace(/[^a-zA-Z0-9À-ú]/g,'_')}_${new Date().toISOString().split('T')[0]}.json`;
+    const jsonStr = JSON.stringify(exportObj, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // Chrome/Edge: abre diálogo "Guardar como" — o utilizador escolhe a pasta
+    if (window.showSaveFilePicker) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'Ficheiro GEP', accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        showToast('✓ Ficheiro guardado com sucesso!');
+        return;
+      } catch(e) {
+        if (e.name === 'AbortError') return; // utilizador cancelou o diálogo
+        // outro erro: cai no fallback abaixo
+        console.warn('showSaveFilePicker falhou:', e);
+      }
+    }
+
+    // Fallback para Firefox / browsers sem File System Access API
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('✓ Ficheiro exportado para Downloads');
+
+  } catch(e) {
+    console.error('Erro ao exportar JSON:', e);
+    showToast('⚠️ Erro ao exportar: ' + e.message);
+  }
+}
+
+// ── Exportar TODAS as fichas (JSON) ──────────────────────────
+async function exportAllJSON() {
+  try {
+    showToast('⏳ A carregar todas as fichas...');
+
+    // Vai buscar todos os registos ao Supabase (campos + fotos)
+    const rows = await sbFetch('gep_data?select=id,processo,nome_ed,fields,photos,saved_by,saved_at&order=saved_at.desc');
+
+    if (!rows || rows.length === 0) {
+      showToast('ℹ️ Não existem fichas para exportar.');
+      return;
+    }
+
+    const exportObj = {
+      version: 2,
+      type: 'backup_completo',
+      exportedAt: new Date().toISOString(),
+      totalFichas: rows.length,
+      fichas: rows
+    };
+
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `GEP_backup_completo_${date}.json`;
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+
+    if (window.showSaveFilePicker) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'Backup GEP', accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        showToast(`✓ Backup guardado — ${rows.length} ficha(s) exportada(s)`);
+        return;
+      } catch(e) {
+        if (e.name === 'AbortError') return;
+        console.warn('showSaveFilePicker falhou:', e);
+      }
+    }
+
+    // Fallback
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast(`✓ Backup exportado — ${rows.length} ficha(s)`);
+
+  } catch(e) {
+    console.error('Erro ao exportar backup:', e);
+    showToast('⚠️ Erro ao exportar: ' + e.message);
+  }
+}
+
+// ── Migrar fotos base64 existentes para Supabase Storage ──────
+// Percorre todas as fichas. Se uma entrada de photos tiver .src (base64),
+// faz upload para Storage, substitui por .url e actualiza o Supabase.
+// Operação idempotente: fichas já migradas (sem .src) são ignoradas.
+async function migratePhotosToStorage() {
+  if (_currentId) {
+    showToast('⚠️ Fecha a ficha aberta antes de migrar.');
+    return;
+  }
+  if (!confirm(
+    'Migrar fotos de todas as fichas para o Supabase Storage?\n\n' +
+    '• As fotos base64 serão carregadas para o Storage\n' +
+    '• A coluna "photos" no Supabase ficará apenas com URLs\n' +
+    '• A operação pode demorar alguns minutos\n' +
+    '• Não feches a janela durante o processo\n\n' +
+    'Confirmas?'
+  )) return;
+
+  showToast('⏳ A carregar fichas do Supabase...');
+  try {
+    const rows = await sbFetch('gep_data?select=id,processo,photos');
+    if (!rows || rows.length === 0) { showToast('ℹ️ Não existem fichas.'); return; }
+
+    let totalFotos     = 0;
+    let fichasMigradas = 0;
+    const total = rows.length;
+
+    for (const row of rows) {
+      if (!row.photos || typeof row.photos !== 'object') continue;
+
+      // Verificar se há alguma entrada com .src (base64) por migrar
+      const temBase64 = Object.values(row.photos).some(v => v && v.src);
+      if (!temBase64) continue;   // já migrada ou sem fotos — ignorar
+
+      const cloudPhotos = {};
+      for (const [key, val] of Object.entries(row.photos)) {
+        if (!val) { cloudPhotos[key] = val; continue; }
+        if (!val.src) { cloudPhotos[key] = val; continue; } // já é URL
+        try {
+          const url = await uploadPhotoToStorage(val.src, row.processo, row.id, key);
+          cloudPhotos[key] = { url, metas: val.metas || [] };
+          totalFotos++;
+        } catch(e) {
+          console.warn(`Upload falhou (${row.processo}/${key}):`, e.message);
+          cloudPhotos[key] = val; // manter base64 se falhar
+        }
+      }
+
+      await sbFetch(`gep_data?id=eq.${encodeURIComponent(row.id)}`, 'PATCH', { photos: cloudPhotos });
+      fichasMigradas++;
+      showToast(`⏳ ${fichasMigradas}/${total} — ${row.processo}`);
+      await new Promise(r => setTimeout(r, 150)); // pausa para não sobrecarregar
+    }
+
+    showToast(`✓ Migração concluída — ${totalFotos} foto(s) em ${fichasMigradas} ficha(s)`);
+  } catch(e) {
+    console.error('Erro na migração:', e);
+    showToast('⚠️ Erro: ' + e.message);
+  }
+}
+
+// ── Recomprimir todas as fotos (1024×768) ─────────────────────
+async function recompressAllPhotos() {
+  if (_currentId) {
+    showToast('⚠️ Fecha a ficha aberta antes de recomprimir.');
+    return;
+  }
+  if (!confirm(
+    'Recomprimir todas as fotos de todas as fichas para 1024×768?\n\n' +
+    '• As fotos serão redimensionadas e comprimidas no Supabase\n' +
+    '• A operação pode demorar consoante o número de fotos\n' +
+    '• Não feches a janela durante o processo\n\n' +
+    'Confirmas?'
+  )) return;
+
+  showToast('⏳ A carregar fichas do Supabase...');
+  try {
+    const rows = await sbFetch('gep_data?select=id,processo,nome_ed,photos');
+    if (!rows || rows.length === 0) { showToast('ℹ️ Não existem fichas.'); return; }
+
+    let totalFotos = 0;
+    let fichasActualizadas = 0;
+
+    for (const row of rows) {
+      if (!row.photos || typeof row.photos !== 'object') continue;
+
+      let alterado = false;
+      const newPhotos = {};
+
+      for (const [key, val] of Object.entries(row.photos)) {
+        if (!val) { newPhotos[key] = val; continue; }
+        // Suporte formato antigo { src } e novo { url }
+        const srcToCompress = val.src || val.url || null;
+        if (!srcToCompress) { newPhotos[key] = val; continue; }
+        const compressed = await compressPhoto(srcToCompress, 1024, 768, 0.82);
+        newPhotos[key] = { ...val, src: compressed, url: undefined };
+        totalFotos++;
+        alterado = true;
+      }
+
+      if (alterado) {
+        await sbFetch(`gep_data?id=eq.${encodeURIComponent(row.id)}`, 'PATCH', { photos: newPhotos });
+        fichasActualizadas++;
+        showToast(`⏳ ${fichasActualizadas}/${rows.filter(r => r.photos).length} — ${row.nome_ed || row.processo}`);
+        await new Promise(r => setTimeout(r, 200)); // pausa para não sobrecarregar
+      }
+    }
+
+    showToast(`✓ Concluído — ${totalFotos} foto(s) em ${fichasActualizadas} ficha(s)`);
+  } catch(e) {
+    console.error('Erro na recompressão:', e);
+    showToast('⚠️ Erro: ' + e.message);
+  }
+}
+
+// ── Importar dados JSON ───────────────────────────────────────
+async function importJSON(event) {
+  // Chamado via input file (fallback)
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  await _processImportFile(file);
+}
+
+async function importJSONPicker() {
+  // Usar showOpenFilePicker se disponível
+  if (window.showOpenFilePicker) {
+    try {
+      const [fileHandle] = await window.showOpenFilePicker({
+        types: [{ description: 'Ficheiro GEP JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      const file = await fileHandle.getFile();
+      await _processImportFile(file);
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  // Fallback para input file
+  document.getElementById('importJSONInput').click();
+}
+
+async function _processImportFile(file) {
+  const confirmed = confirm(
+    '⚠️ Importar este ficheiro irá substituir todos os dados atuais da inspecção aberta.\n\nDeseja continuar?'
+  );
+  if (!confirmed) return;
+
+  try {
+    showToast('⏳ A importar dados...');
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (!data.version || !data.fields) {
+      showToast('⚠️ Ficheiro inválido ou incompatível.');
+      return;
+    }
+
+    // 1. Limpar formulário atual
+    await resetForm();
+
+    // 2. Popular o formulário diretamente (sem reload)
+    await populateForm(data.fields, data.photos || {});
+
+    // 3. Guardar imediatamente na nuvem se houver uma inspecção aberta
+    if (_currentId && !_isLocked) {
+      await autoSaveToCloud(true); // import = substituição intencional, ignora tripwire
+    }
+
+    showToast('✓ Dados importados com sucesso!');
+  } catch(e) {
+    console.error('Erro ao importar JSON:', e);
+    showToast('⚠️ Erro ao importar: ' + e.message);
+  }
+}
+
+// ── Google Drive (Apps Script) ────────────────────────────────
+
+// ── Supabase ──────────────────────────────────────────────────
+const SB_URL  = 'https://yegykqsdwkxwjdqamizf.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllZ3lrcXNkd2t4d2pkcWFtaXpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNDA0NTYsImV4cCI6MjA4OTYxNjQ1Nn0.gVF1hC_1vkNfADD1S43tKOaVU3wFQGt3_Ekb4qt307k';
+const LOCK_TIMEOUT_MS  = 5 * 60 * 1000;
+const STORAGE_BUCKET   = 'gep-photos';
+const STORAGE_URL      = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}`;
+
+// ── Supabase Storage — upload de uma foto ─────────────────────
+// Recebe base64 dataURL, faz upload e devolve URL pública
+async function uploadPhotoToStorage(base64DataUrl, processo, inspId, areaKey) {
+  const res  = await fetch(base64DataUrl);
+  const blob = await res.blob();
+  const ext  = blob.type.includes('png') ? 'png' : 'jpg';
+  const path = `${processo}/${inspId}/${areaKey}.${ext}`;
+  const uploadRes = await fetch(
+    `${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`,
+    {
+      method : 'POST',
+      headers: {
+        'apikey'       : SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type' : blob.type,
+        'x-upsert'     : 'true'        // substitui se já existir
+      },
+      body: blob
+    }
+  );
+  if (!uploadRes.ok) {
+    const err = await uploadRes.text();
+    throw new Error(`Storage upload falhou (${uploadRes.status}): ${err}`);
+  }
+  return `${STORAGE_URL}/${path}`;
+}
+
+// ── Overlay de progresso de upload ───────────────────────────
+function showUploadOverlay(total) {
+  document.getElementById('uploadOverlay').classList.add('show');
+  document.getElementById('uploadFill').style.width = '0%';
+  document.getElementById('uploadCount').textContent = `0 / ${total}`;
+  document.getElementById('uploadSubtitle').textContent = 'A preparar...';
+  // Bloquear botões de guardar durante o upload
+  document.querySelectorAll('button[onclick*="saveToSupabase"], button[onclick*="autoSaveToCloud"]')
+    .forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+}
+
+function updateUploadOverlay(done, total, label) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('uploadFill').style.width = `${pct}%`;
+  document.getElementById('uploadCount').textContent = `${done} / ${total}`;
+  document.getElementById('uploadSubtitle').textContent = label || '';
+}
+
+function hideUploadOverlay() {
+  document.getElementById('uploadOverlay').classList.remove('show');
+  document.querySelectorAll('button[onclick*="saveToSupabase"], button[onclick*="autoSaveToCloud"]')
+    .forEach(b => { b.disabled = false; b.style.opacity = ''; });
+}
+
+// ── Preparar photos para a nuvem: base64 → Storage URL ────────
+// Percorre allPhotos do IndexedDB. Se uma entrada tiver .src (base64),
+// faz upload para Storage e substitui por .url. Devolve objeto pronto
+// para guardar no Supabase (sem base64).
+async function buildCloudPhotos(allPhotos, processo, inspId, silent = false) {
+  // Contar fotos que precisam de upload
+  const toUpload = Object.entries(allPhotos).filter(([, v]) => v && v.src);
+  const total    = toUpload.length;
+
+  // O overlay modal só aparece em gravações manuais. No auto-save (silent)
+  // nunca cobrimos o ecrã — caso contrário interrompia o preenchimento.
+  if (total > 0 && !silent) showUploadOverlay(total);
+
+  const cloudPhotos = {};
+  let done = 0;
+
+  for (const [key, val] of Object.entries(allPhotos)) {
+    if (!val || !val.src) {
+      // Já é URL ou está vazio — guardar apenas url + metas
+      cloudPhotos[key] = val ? { url: val.url || null, metas: val.metas || [] } : null;
+      continue;
+    }
+    // Actualizar progresso
+    done++;
+    if (!silent) updateUploadOverlay(done - 1, total, key.replace('area_', '').replace('_', ' foto '));
+    try {
+      const url = await uploadPhotoToStorage(val.src, processo, inspId, key);
+      cloudPhotos[key] = { url, metas: val.metas || [] };
+      // Actualizar IndexedDB local: substituir base64 por URL para evitar re-upload
+      await dbSet('photos', key, { url, metas: val.metas || [] });
+      // Actualizar também o <img> no DOM para a URL. Sem isto, o img.src ficava
+      // em base64 e a gravação seguinte voltava a tratá-la como foto nova.
+      const areaEl = document.getElementById(key);
+      const imgEl  = areaEl && areaEl.querySelector('img');
+      if (imgEl) imgEl.src = url;
+      if (!silent) updateUploadOverlay(done, total, `✓ ${key.replace('area_', '').replace('_', ' foto ')}`);
+    } catch(e) {
+      console.warn(`Upload falhou para ${key}:`, e.message);
+      // Fallback: inclui base64 para não perder a foto (será re-tentado na próxima gravação)
+      cloudPhotos[key] = val;
+    }
+  }
+
+  if (total > 0 && !silent) {
+    updateUploadOverlay(total, total, '✓ Upload concluído');
+    await new Promise(r => setTimeout(r, 600)); // breve pausa para o utilizador ver 100%
+    hideUploadOverlay();
+  }
+
+  return cloudPhotos;
+}
+
+let _sbUser       = localStorage.getItem('gep_username') || '';
+
+/* Presença (semáforo do painel) */
+(function(){
+  var _pid=localStorage.getItem('seen_pres_id');
+  if(!_pid){ _pid='i'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); localStorage.setItem('seen_pres_id',_pid); }
+  var _presSess='gep-'+_pid;
+  function _presBater(){ try{ sbFetch('app_presenca','POST',{sessao:_presSess,app:'gep',utilizador:_sbUser||'',visto_em:new Date().toISOString()}); }catch(e){} }
+  function _presSair(){ try{ fetch(SB_URL+'/rest/v1/app_presenca?sessao=eq.'+_presSess,{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},keepalive:true}); }catch(e){} }
+  _presBater(); setInterval(_presBater,15000);
+  window.addEventListener('pagehide',_presSair);
+  window.addEventListener('beforeunload',_presSair);
+})();
+let _heartbeatTimer = null;
+let _isLocked     = false;
+let _currentId       = null; // ID da inspecção actualmente aberta
+let _currentProcesso = null; // Processo da inspecção actualmente aberta (guarda contra overwrite)
+let _nomeEdApagado   = '';   // Nome temporário usado ao registar no arquivo
+let _formReady       = false; // só permite gravar quando a ficha está totalmente carregada
+
+async function sbFetch(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=minimal' : ''
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(SB_URL + '/rest/v1/' + path, opts);
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// ── Navegação entre ecrãs ─────────────────────────────────────
+function mostrarLista() {
+  document.getElementById('listaScreen').style.display = 'block';
+  document.getElementById('sectionNav').style.display = 'none';
+  document.querySelector('.main').style.display = 'none';
+  document.querySelector('.bottom-nav').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  document.getElementById('headerActionsForm').style.display = 'none';
+  document.getElementById('headerActionsList').style.display = 'flex';
+  document.getElementById('btnVoltar').style.display = 'none';
+  document.getElementById('headerSub').textContent = 'Gestão de Edifícios e Patologias';
+  setLockBadge('none');
+  carregarLista();
+}
+
+function mostrarFormulario(processo) {
+  document.getElementById('listaScreen').style.display = 'none';
+  document.getElementById('sectionNav').style.display = 'flex';
+  document.querySelector('.main').style.display = 'block';
+  document.querySelector('.bottom-nav').style.display = 'flex';
+  document.querySelector('.progress-bar').style.display = 'block';
+  document.getElementById('headerActionsForm').style.display = 'flex';
+  document.getElementById('headerActionsList').style.display = 'none';
+  document.getElementById('btnVoltar').style.display = 'inline-block';
+  document.getElementById('headerSub').textContent = processo ? 'Proc. ' + processo : 'Nova inspecção';
+}
+
+// ── Lista de inspecções ───────────────────────────────────────
+async function carregarLista() {
+  const container = document.getElementById('listaCards');
+  const vazia     = document.getElementById('listaVazia');
+  const subtitle  = document.getElementById('listaSubtitle');
+  container.innerHTML = '<p style="color:var(--text-muted);font-size:13px">⏳ A carregar...</p>';
+  vazia.style.display = 'none';
+
+  try {
+    const [rows, locks] = await Promise.all([
+      sbFetch('gep_data?select=id,processo,nome_ed,saved_by,saved_at&order=saved_at.desc'),
+      sbFetch('gep_lock?select=id,user,ts')
+    ]);
+
+    // Filtrar registo legado 'main' e ordenar por número de processo (ano → mês → número)
+    const fichas = (rows || []).filter(r => r.id !== 'main');
+    fichas.sort((a, b) => {
+      const parse = p => {
+        const m = (p || '').match(/^(\d+)\.(\d+)\.(\d+)$/);
+        return m ? parseInt(m[1]) : Infinity;
+      };
+      return parse(a.processo) - parse(b.processo);
+    });
+
+    subtitle.textContent = fichas.length ? `${fichas.length} inspecção(ões)` : '';
+    container.innerHTML = '';
+
+    if (!fichas.length) { vazia.style.display = 'block'; return; }
+
+    const lockMap = {};
+    const now = Date.now();
+    (locks || []).forEach(l => {
+      if (l.user && l.user !== _sbUser && (now - l.ts) < LOCK_TIMEOUT_MS) lockMap[l.id] = l.user;
+    });
+
+    fichas.forEach(row => {
+      const locked   = lockMap[row.id];
+      const processo = row.processo || '(sem número)';
+      const nome     = row.nome_ed  || '—';
+      const quando   = row.saved_at ? new Date(row.saved_at).toLocaleString('pt-PT') : '—';
+      const quem     = row.saved_by ? ` · ${row.saved_by}` : '';
+
+      const card = document.createElement('div');
+      card.className = 'insp-card' + (locked ? ' insp-locked' : '');
+      card.innerHTML = `
+        <div class="insp-card-info">
+          <div class="insp-card-proc">Proc. ${processo}</div>
+          <div class="insp-card-nome">${nome}</div>
+          <div class="insp-card-meta">${quando}${quem}</div>
+        </div>
+        <div class="insp-card-actions">
+          ${locked
+            ? `<span class="insp-locked-badge">🔒 ${locked}</span>`
+            : `<button onclick="abrirInspeccao('${row.id}')">✏️ Abrir</button>
+               <button class="btn-del" onclick="apagarInspeccao('${row.id}', '${processo}')">🗑️</button>`
+          }
+        </div>`;
+      container.appendChild(card);
+    });
+  } catch(e) {
+    container.innerHTML = `<p style="color:#c55;font-size:13px">⚠️ Erro ao carregar: ${e.message}</p>`;
+  }
+}
+
+// ── Reset do formulário ───────────────────────────────────────
+async function resetForm() {
+  _formReady = false; // a partir daqui, e até a ficha estar totalmente carregada, não se grava
+  while (patCount > 3) {
+    const el = document.getElementById('pat_' + patCount);
+    if (el) el.remove();
+    patCount--;
+  }
+  while (fotoEdCount > 2) {
+    const area = document.getElementById('area_ed_' + fotoEdCount);
+    if (area) { const cell = area.closest('.photo-cell'); if (cell) cell.remove(); }
+    fotoEdCount--;
+  }
+  // Remover linhas-par vazias que possam ter ficado
+  const fotoCont = document.getElementById('fotos_edificio');
+  Array.from(fotoCont.children).forEach(row => { if (!row.children.length) row.remove(); });
+  document.querySelectorAll('input[type=text][id], input[type=date][id], input[type=number][id], textarea[id]').forEach(el => { el.value = ''; });
+  document.querySelectorAll('input[type=checkbox][id]').forEach(el => { el.checked = false; });
+  document.querySelectorAll('.photo-area[id]').forEach(area => {
+    const img = area.querySelector('img');
+    if (img) img.remove();
+    area.classList.remove('has-photo');
+    const act = area.querySelector('.photo-actions');
+    if (act) act.style.display = '';   // limpar style inline — o CSS encarrega-se de esconder
+    const fi = area.querySelector('input[type=file]');
+    if (fi) { fi.style.pointerEvents = ''; fi.value = ''; }  // repor file input (pode ter ficado bloqueado de ficha anterior)
+    if (!area.querySelector('span.icon')) {
+      const icon = document.createElement('span'); icon.className = 'icon'; icon.textContent = '📷';
+      const txt  = document.createElement('span'); txt.textContent = 'Clique para adicionar foto';
+      if (fi) { area.insertBefore(txt, fi); area.insertBefore(icon, txt); }
+    }
+  });
+  await clearAllPhotos();
+  localStorage.removeItem('gep_fields');
+}
+
+// ── Popular formulário com dados da nuvem ─────────────────────
+async function populateForm(fieldsData, photosData) {
+  const fd            = fieldsData || {};
+  const savedFields   = fd.fields      || {};
+  const savedPatCount = fd.patCount    || 3;
+  const savedFotoCount= Math.ceil((fd.fotoEdCount || 2) / 2) * 2; // sempre par
+
+  // Criar patologias / fotos extra necessárias
+  while (patCount    < savedPatCount)  addPatologia();
+  while (fotoEdCount < savedFotoCount) addFotoEdificio();
+
+  // Cada patologia pode ter mais de 2 fotos (ex.: fichas importadas do PATO) —
+  // criar células a mais antes de aplicar as fotos guardadas.
+  if (photosData && typeof photosData === 'object') {
+    const maxIndicePorPatologia = {};
+    Object.keys(photosData).forEach(key => {
+      const m = key.match(/^area_pat(\d+)_(\d+)$/);
+      if (!m) return;
+      const n = +m[1], i = +m[2];
+      if (!maxIndicePorPatologia[n] || i > maxIndicePorPatologia[n]) maxIndicePorPatologia[n] = i;
+    });
+    Object.entries(maxIndicePorPatologia).forEach(([n, maxI]) => {
+      const grid = document.getElementById('photos_pat' + n);
+      if (!grid) return;
+      while (grid.children.length < maxI) addPatFoto(+n);
+    });
+  }
+
+  // Preencher todos os campos
+  Object.entries(savedFields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!val;
+    else {
+      // Campo de número de patologia: se vazio, usar o número da patologia como valor por defeito
+      const patNumMatch = id.match(/^pat_(\d+)_num$/);
+      if (patNumMatch && (val === null || val === undefined || val === '')) {
+        el.value = patNumMatch[1];
+        return;
+      }
+      el.value = (val !== null && val !== undefined) ? val : '';
+    }
+  });
+
+  // Guardar em localStorage (para o auto-save funcionar)
+  localStorage.setItem('gep_fields', JSON.stringify(fd));
+
+  // Fotos
+  if (photosData && typeof photosData === 'object') {
+    for (const [key, val] of Object.entries(photosData)) {
+      if (val) await dbSet('photos', key, val);
+    }
+    const allPhotos = await dbGetAll('photos');
+    Object.entries(allPhotos).forEach(([areaId, photoData]) => {
+      if (!photoData) return;
+      // Suporte a dois formatos: antigo { src } e novo { url }
+      const displaySrc = photoData.src || photoData.url || null;
+      if (!displaySrc) return;
+      const area = document.getElementById(areaId);
+      if (!area) return;
+      _applyPhoto(area, areaId, displaySrc);
+      const cell = area.closest('.photo-cell');
+      if (cell) {
+        const metaInputs = cell.querySelectorAll('.photo-meta input');
+        (photoData.metas || []).forEach((v, i) => { if (metaInputs[i]) metaInputs[i].value = v; });
+      }
+    });
+  }
+
+  // Ajustar alturas das textareas
+  setTimeout(() => {
+    document.querySelectorAll('textarea').forEach(autoGrow);
+  }, 50);
+
+  _formReady = true; // ficha totalmente carregada — gravação automática autorizada
+  // Referência para o tripwire síncrono: quantos campos esta ficha trouxe.
+  try {
+    const _fr = localStorage.getItem('gep_fields');
+    _lastCloudFilledCount = _fr ? _countFilled((JSON.parse(_fr).fields) || {}) : null;
+  } catch (e) { _lastCloudFilledCount = null; }
+}
+
+// ── Nova inspecção ────────────────────────────────────────────
+async function novaInspeccao() {
+  if (!_sbUser) { showUserModal(); return; }
+  if (_currentId && !_isLocked) await autoSaveToCloud();
+  await releaseLock();
+  showToast('⏳ A criar nova ficha...');
+  await resetForm();
+  _currentId       = 'insp_' + Date.now();
+  _currentProcesso = null; // nova ficha, processo ainda desconhecido
+  mostrarFormulario('');
+  goTo(0);
+  _formReady = true; // ficha nova, vazia de propósito — gravação autorizada
+  _lastCloudFilledCount = 0; // ficha nova começa vazia
+  showToast('✓ Nova ficha criada');
+  initSupabaseLock();
+}
+
+async function clearAllPhotos() {
+  return new Promise(resolve => {
+    const req = indexedDB.open('gep_db');
+    req.onsuccess = e => {
+      const d = e.target.result;
+      const tx = d.transaction('photos', 'readwrite');
+      tx.objectStore('photos').clear();
+      tx.oncomplete = resolve;
+    };
+    req.onerror = resolve;
+  });
+}
+
+// ── Abrir inspecção existente ─────────────────────────────────
+async function abrirInspeccao(id) {
+  if (!_sbUser) { showUserModal(); return; }
+  showToast('⏳ A carregar ficha...');
+  try {
+    const rows = await sbFetch(`gep_data?id=eq.${encodeURIComponent(id)}&select=fields,photos,processo,nome_ed`);
+    if (!rows || !rows.length) { showToast('⚠️ Inspecção não encontrada.'); return; }
+    const parsed = rows[0];
+    if (_currentId && !_isLocked) await autoSaveToCloud();
+    await releaseLock();
+    await resetForm();
+    _currentId       = id;
+    _currentProcesso = parsed.processo || null; // guarda o processo esperado
+    await populateForm(parsed.fields, parsed.photos);
+    const proc = document.getElementById('f_processo');
+    mostrarFormulario(proc ? proc.value : (parsed.processo || ''));
+    goTo(0);
+    showToast('✓ Ficha carregada');
+    initSupabaseLock();
+  } catch(e) {
+    console.error('abrirInspeccao:', e);
+    showToast('⚠️ Erro ao abrir: ' + e.message);
+  }
+}
+
+// ── Apagar fotos do Storage (endpoint correcto) ──────────────
+async function apagarFotosStorage(processo, id) {
+  const prefix = processo + '/' + id;
+  try {
+    // Listar: POST /object/list/{bucket} com { prefix, limit }
+    const listRes = await fetch(
+      SB_URL + '/storage/v1/object/list/' + STORAGE_BUCKET,
+      {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefix: prefix, limit: 1000, offset: 0 })
+      }
+    );
+    if (!listRes.ok) { console.warn('Storage list falhou:', await listRes.text()); return; }
+    const files = await listRes.json();
+    if (!Array.isArray(files) || !files.length) return;
+    const paths = files.map(f => prefix + '/' + f.name);
+    // Eliminar: DELETE /object/{bucket} com { prefixes: [...] }
+    await fetch(
+      SB_URL + '/storage/v1/object/' + STORAGE_BUCKET,
+      {
+        method: 'DELETE',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefixes: paths })
+      }
+    );
+    console.log('Storage: ' + paths.length + ' foto(s) eliminada(s) de ' + prefix);
+  } catch(e) {
+    console.warn('apagarFotosStorage:', e.message);
+  }
+}
+
+// ── Apagar inspecção (com cópia JSON automática) ──────────────
+async function apagarInspeccao(id, processo) {
+  // Passo 1 — avisar que vai ser feita uma cópia antes de apagar
+  const step1 = confirm(
+    `🗑️ Apagar ficha "${processo}"\n\n` +
+    `Antes de apagar, será descarregada automaticamente uma cópia dos dados em JSON.\n\n` +
+    `Continuar?`
+  );
+  if (!step1) return;
+
+  // Passo 2 — descarregar cópia JSON da ficha
+  try {
+    showToast('⏳ A preparar cópia de segurança...');
+    const rows = await sbFetch(`gep_data?id=eq.${encodeURIComponent(id)}&select=*`);
+    if (!rows || rows.length === 0) throw new Error('Ficha não encontrada no servidor.');
+    const row = rows[0];
+    _nomeEdApagado = row.nome_ed || ''; // guardar para usar no arquivo
+
+    // Construir objecto de exportação igual ao exportJSON() mas só desta ficha
+    const exportObj = {
+      version:    1,
+      exportedAt: new Date().toISOString(),
+      processo:   row.processo,
+      nome_ed:    row.nome_ed,
+      fields:     row.fields  || {},
+      photos:     row.photos  || {}
+    };
+
+    const jsonStr  = JSON.stringify(exportObj, null, 2);
+    const blob     = new Blob([jsonStr], { type: 'application/json' });
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement('a');
+    const datePart = new Date().toISOString().slice(0,10);
+    const nomePart = (row.nome_ed || processo).replace(/[^a-zA-Z0-9À-ÿ _-]/g, '').trim().replace(/\s+/g,'_');
+    a.href         = url;
+    a.download     = `GEP_cópia_${nomePart}_${datePart}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Pequena pausa para garantir que o download iniciou
+    await new Promise(r => setTimeout(r, 800));
+
+  } catch(e) {
+    showToast('⚠️ Erro ao criar cópia: ' + e.message);
+    return; // Não apagar se não conseguiu criar cópia
+  }
+
+  // Passo 3 — confirmação final de eliminação (após cópia garantida)
+  const step3 = confirm(
+    `✅ Cópia JSON descarregada com sucesso.\n\n` +
+    `─────────────────────────────\n` +
+    `Apagar "${processo}" permanentemente?\n\n` +
+    `Esta acção não pode ser desfeita.`
+  );
+  if (!step3) {
+    showToast('ℹ️ Eliminação cancelada. A cópia JSON foi mantida.');
+    return;
+  }
+
+  // Passo 4 — apagar do Supabase (registo + fotos no Storage)
+  try {
+    // 4a. Apagar fotos do Storage (listar + eliminar em lote)
+    showToast('⏳ A apagar fotos do Storage...');
+    await apagarFotosStorage(processo, id);
+
+    // 4b. Apagar registo e bloqueio
+    await sbFetch(`gep_data?id=eq.${encodeURIComponent(id)}`, 'DELETE');
+    await sbFetch(`gep_lock?id=eq.${encodeURIComponent(id)}`, 'DELETE');
+
+    // 4c. Registar no arquivo gep_lixo (só processo + nome)
+    let _arquivoOk = false;
+    try {
+      await sbFetch('gep_lixo', 'POST', {
+        id: id, processo: processo, nome_ed: _nomeEdApagado,
+        deleted_by: _sbUser, deleted_at: Date.now()
+      });
+      _arquivoOk = true;
+    } catch(archErr) {
+      console.warn('Aviso: não foi possível registar no arquivo:', archErr.message);
+    }
+
+    if (_arquivoOk) {
+      showToast('✓ Ficha apagada e registada no arquivo.');
+    } else {
+      showToast('⚠️ Ficha apagada, mas NÃO foi registada no arquivo. Guarde o JSON descarregado.');
+    }
+    carregarLista();
+  } catch(e) {
+    showToast('⚠️ Erro ao apagar: ' + e.message);
+  }
+}
+
+// ── Voltar à lista ────────────────────────────────────────────
+async function voltarLista() {
+  if (_currentId && !_isLocked) {
+    clearTimeout(window._cloudSaveTimer);
+    await autoSaveToCloud();
+  }
+  await releaseLock();
+  _currentId = null;
+  _currentProcesso = null;
+  sessionStorage.removeItem('gep_open_id');
+  sessionStorage.removeItem('gep_is_new');
+  mostrarLista();
+}
+
+// ── Arquivo — Fichas Apagadas ─────────────────────────────────
+function toggleArquivo() {
+  const section  = document.getElementById('arquivoSection');
+  const chevron  = document.getElementById('arquivoChevron');
+  const toggle   = document.getElementById('arquivoToggle');
+  const isOpen   = section.style.display !== 'none';
+  if (isOpen) {
+    section.style.display = 'none';
+    chevron.style.transform = '';
+    toggle.style.color = 'var(--text-muted)';
+  } else {
+    section.style.display = 'block';
+    chevron.style.transform = 'rotate(180deg)';
+    toggle.style.color = 'var(--text)';
+    carregarArquivo();
+  }
+}
+
+async function carregarArquivo() {
+  const container = document.getElementById('arquivoCards');
+  container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:8px 0">⏳ A carregar...</p>';
+  try {
+    const rows = await sbFetch('gep_lixo?select=id,processo,nome_ed,deleted_by,deleted_at&order=deleted_at.desc');
+    const fichas = rows || [];
+    if (!fichas.length) {
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0">📭 Nenhuma ficha apagada.</p>';
+      return;
+    }
+    container.innerHTML = '';
+    fichas.forEach(row => {
+      const proc  = row.processo   || '(sem número)';
+      const nome  = row.nome_ed    || '—';
+      const quem  = row.deleted_by ? ' · ' + row.deleted_by : '';
+      const qnd   = row.deleted_at ? new Date(row.deleted_at).toLocaleString('pt-PT') : '—';
+      const safeNome = nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;opacity:.8';
+      card.innerHTML =
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:600;color:var(--text-muted)">Proc. ' + proc + '</div>' +
+          '<div style="font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nome + '</div>' +
+          '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">Apagado em ' + qnd + quem + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0">' +
+          '<button onclick="importarArquivoJSON(\'' + row.id + '\')" style="padding:5px 10px;font-size:12px;border-radius:4px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit" title="Importar o JSON descarregado quando esta ficha foi apagada e recriar a ficha completa">📥 JSON</button>' +
+          '<button onclick="restaurarArquivo(\'' + row.id + '\',\'' + proc + '\',\'' + safeNome + '\')" style="padding:5px 10px;font-size:12px;border-radius:4px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit" title="Criar nova ficha vazia com este processo e nome">↩️ Restaurar</button>' +
+          '<button onclick="limparStorageArquivo(\'' + proc + '\',\'' + row.id + '\')" style="padding:5px 10px;font-size:12px;border-radius:4px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit" title="Eliminar fotos órfãs do Storage">🗜️</button>' +
+          '<button onclick="eliminarArquivo(\'' + row.id + '\',\'' + proc + '\')" style="padding:5px 10px;font-size:12px;border-radius:4px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit" title="Eliminar permanentemente do arquivo">🗑️</button>' +
+        '</div>';
+      container.appendChild(card);
+    });
+  } catch(e) {
+    container.innerHTML = '<p style="color:#c55;font-size:13px;padding:8px 0">⚠️ Erro ao carregar arquivo: ' + e.message + '</p>';
+  }
+}
+
+async function restaurarArquivo(id, processo, nomeEd) {
+  if (!confirm('↩️ Restaurar ficha "' + processo + '"?\n\nSerá criada uma nova ficha vazia com o número de processo e nome do edifício.')) return;
+  try {
+    const newId = 'insp_' + Date.now();
+    await sbFetch('gep_data', 'POST', {
+      id: newId, processo: processo, nome_ed: nomeEd,
+      fields: { fields: { f_processo: processo, f_nome_ed: nomeEd }, patCount: 3, fotoEdCount: 2 },
+      photos: {}, saved_by: _sbUser, saved_at: Date.now()
+    });
+    await sbFetch('gep_lixo?id=eq.' + encodeURIComponent(id), 'DELETE');
+    showToast('✓ Ficha restaurada.');
+    document.getElementById('arquivoSection').style.display = 'none';
+    document.getElementById('arquivoChevron').style.transform = '';
+    carregarLista();
+  } catch(e) {
+    showToast('⚠️ Erro ao restaurar: ' + e.message);
+  }
+}
+
+async function limparStorageArquivo(processo, id) {
+  if (!confirm('Eliminar as fotos do Storage para a ficha "' + processo + '"?\n\nEsta accao nao pode ser desfeita.')) return;
+  showToast('⏳ A eliminar fotos...');
+  await apagarFotosStorage(processo, id);
+  showToast('✓ Fotos do Storage eliminadas.');
+}
+
+async function eliminarArquivo(id, processo) {
+  if (!confirm('🗑️ Eliminar permanentemente o registo de arquivo da ficha "' + processo + '"?\n\nEsta acção não pode ser desfeita.')) return;
+  try {
+    await sbFetch('gep_lixo?id=eq.' + encodeURIComponent(id), 'DELETE');
+    showToast('✓ Registo eliminado do arquivo.');
+    carregarArquivo();
+  } catch(e) {
+    showToast('⚠️ Erro: ' + e.message);
+  }
+}
+
+// ── Restaurar ficha apagada a partir do JSON descarregado ─────
+// Abre a cópia JSON criada quando a ficha foi anulada e recria a ficha completa
+// (número de processo, nome, campos e fotos). Se vier de um cartão do arquivo,
+// remove esse registo do lixo.
+async function importarArquivoJSON(lixoId) {
+  if (window.showOpenFilePicker) {
+    try {
+      const [fh] = await window.showOpenFilePicker({
+        types: [{ description: 'Ficheiro GEP JSON', accept: { 'application/json': ['.json'] } }]
+      });
+      const file = await fh.getFile();
+      await _restaurarFichaDeJSON(file, lixoId || '');
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  const inp = document.getElementById('importArquivoInput');
+  inp.dataset.lixoId = lixoId || '';
+  inp.click();
+}
+
+async function importArquivoInputChange(ev) {
+  const f = ev.target.files[0];
+  const lixoId = ev.target.dataset.lixoId || '';
+  ev.target.value = '';
+  if (f) await _restaurarFichaDeJSON(f, lixoId);
+}
+
+async function _restaurarFichaDeJSON(file, lixoId) {
+  try {
+    showToast('⏳ A restaurar ficha a partir do JSON...');
+    const data = JSON.parse(await file.text());
+    if (!data || !data.fields) { showToast('⚠️ Ficheiro inválido (sem dados de ficha).'); return; }
+    const proc = (data.processo || '').trim();
+    const nome = data.nome_ed || '';
+    if (!proc) { showToast('⚠️ O JSON não tem número de processo.'); return; }
+
+    // Evitar duplicar uma ficha ativa já existente
+    const existe = await sbFetch('gep_data?select=id&processo=eq.' + encodeURIComponent(proc));
+    if (existe && existe.length &&
+        !confirm('Já existe uma ficha ativa com o processo "' + proc + '".\n\nImportar mesmo assim (cria uma cópia)?')) return;
+
+    const newId = 'insp_' + Date.now();
+    await sbFetch('gep_data', 'POST', {
+      id: newId, processo: proc, nome_ed: nome,
+      fields: data.fields, photos: data.photos || {},
+      saved_by: _sbUser, saved_at: Date.now()
+    });
+
+    // Se veio de um cartão do arquivo, retirar do lixo
+    if (lixoId) {
+      try { await sbFetch('gep_lixo?id=eq.' + encodeURIComponent(lixoId), 'DELETE'); } catch(_) {}
+    }
+
+    showToast('✓ Ficha "' + proc + '" restaurada a partir do JSON.');
+    document.getElementById('arquivoSection').style.display = 'none';
+    document.getElementById('arquivoChevron').style.transform = '';
+    carregarLista();
+  } catch(e) {
+    console.error('Erro ao restaurar do JSON:', e);
+    showToast('⚠️ Erro ao restaurar: ' + e.message);
+  }
+}
+
+// ── Menu Supabase ─────────────────────────────────────────────
+function toggleFbMenu(e) {
+  e.stopPropagation();
+  document.getElementById('fbMenu').classList.toggle('open');
+  document.getElementById('exportMenu').classList.remove('open');
+}
+function closeFbMenu() { document.getElementById('fbMenu').classList.remove('open'); }
+document.addEventListener('click', e => {
+  const dd = document.getElementById('fbDropdown');
+  if (dd && !dd.contains(e.target)) closeFbMenu();
+});
+
+// ── Badge de bloqueio ─────────────────────────────────────────
+function setLockBadge(state, who) {
+  const badge = document.getElementById('lockBadge');
+  if (state === 'mine') {
+    badge.style.cssText = 'display:block;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500;white-space:nowrap;background:#e8f5e9;color:#2a7a2a;border:1px solid #c8e6c9';
+    badge.textContent = '🔒 ' + who;
+  } else if (state === 'other') {
+    badge.style.cssText = 'display:block;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500;white-space:nowrap;background:#fff3e0;color:#b85c00;border:1px solid #ffe0b2';
+    badge.textContent = '⚠️ Em edição por: ' + who;
+    _isLocked = true;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ── Bloqueio por inspecção ────────────────────────────────────
+async function initSupabaseLock() {
+  if (!_sbUser || !_currentId) return;
+  try {
+    const rows = await sbFetch(`gep_lock?id=eq.${encodeURIComponent(_currentId)}&select=user,ts`);
+    const lock = rows && rows[0];
+    const now  = Date.now();
+    if (lock && lock.user && lock.user !== _sbUser && (now - lock.ts) < LOCK_TIMEOUT_MS) {
+      setLockBadge('other', lock.user);
+      setTimeout(initSupabaseLock, 30000);
+    } else {
+      await sbFetch('gep_lock', 'POST', { id: _currentId, user: _sbUser, ts: now });
+      setLockBadge('mine', _sbUser);
+      _isLocked = false;
+      startHeartbeat();
+    }
+  } catch(e) { console.warn('Erro bloqueio:', e); }
+}
+
+function startHeartbeat() {
+  clearInterval(_heartbeatTimer);
+  _heartbeatTimer = setInterval(async () => {
+    if (!_currentId) return;
+    try { await sbFetch('gep_lock', 'POST', { id: _currentId, user: _sbUser, ts: Date.now() }); }
+    catch(e) {}
+  }, 2 * 60 * 1000);
+}
+
+async function releaseLock() {
+  clearInterval(_heartbeatTimer);
+  if (!_sbUser || !_currentId) return;
+  try { await sbFetch('gep_lock', 'POST', { id: _currentId, user: '', ts: 0 }); }
+  catch(e) {}
+}
+
+// ── Sair da sessão ────────────────────────────────────────────
+async function sairApp() {
+  const msg = _currentId
+    ? 'Tens uma inspecção aberta.\n\nVamos guardar na nuvem antes de terminar a sessão.\n\nConfirmas?'
+    : 'Confirmas que queres terminar a sessão?';
+  if (!confirm(msg)) return;
+
+  // Se há ficha aberta e editável, guardar pela via protegida e SÓ
+  // continuar se a gravação for confirmada (não terminar à toa).
+  if (_currentId && _formReady && !_isLocked) {
+    const ok = await saveToSupabase();
+    if (!ok) {
+      alert('A gravação NÃO foi concluída, por isso a sessão não vai terminar.\n\nOs teus dados continuam no ecrã. Verifica a ligação à internet e tenta novamente.');
+      return;
+    }
+  }
+
+  // Libertar lock e limpar referência da ficha.
+  // (Se a ficha estava bloqueada ou ainda a carregar, não havia nada
+  // editável por gravar, por isso terminamos a sessão na mesma.)
+  if (_currentId) {
+    await releaseLock().catch(()=>{});
+    _currentId = null;
+    _currentProcesso = null;
+  }
+
+  // Limpar sessão
+  _sbUser = '';
+  localStorage.removeItem('gep_username');
+  document.getElementById('headerUser').textContent = '—';
+
+  // Terminar sessão e voltar ao painel
+  showToast('✓ Sessão terminada.');
+  setTimeout(() => { location.href = 'SEEN_PAINEL_11.html'; }, 600);
+}
+
+// ── Guardar e sair (fecho seguro da app) ──────────────────────
+// Ao contrário do sairApp(), só fecha se a gravação for CONFIRMADA.
+async function guardarESair() {
+  // Sem ficha aberta não há nada por gravar.
+  if (!_currentId) {
+    await releaseLock().catch(()=>{});
+    mostrarEcraSaidaGep();
+    window.close();
+    return;
+  }
+  if (_isLocked) {
+    alert('⚠️ Não podes guardar — outro utilizador está a editar esta inspecção.\n\nA app não vai fechar.');
+    return;
+  }
+  if (!_formReady) {
+    showToast('⚠️ Ficha ainda a carregar — aguarda um instante e tenta de novo.');
+    return;
+  }
+  // Grava pela via protegida (com gate, tripwire e fotos completas).
+  const ok = await saveToSupabase();
+  if (!ok) {
+    alert('A gravação NÃO foi concluída, por isso a aplicação não vai fechar.\n\nOs teus dados continuam no ecrã. Verifica a ligação à internet e tenta novamente.');
+    return;
+  }
+  await releaseLock().catch(()=>{});
+  mostrarEcraSaidaGep();
+  window.close();
+}
+
+function mostrarEcraSaidaGep() {
+  const ov = document.createElement('div');
+  ov.id = 'overlay-saida-gep';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#1a1a1a;color:#fff;' +
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;' +
+    'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;';
+  ov.innerHTML =
+    '<div style="font-size:54px;line-height:1;margin-bottom:18px;color:#4caf50">✓</div>' +
+    '<div style="font-size:22px;font-weight:600;margin-bottom:10px">Inspecção guardada em segurança</div>' +
+    '<div style="font-size:15px;opacity:.8;max-width:460px">A ficha foi gravada na nuvem. Podes fechar este separador em segurança.</div>';
+  document.body.appendChild(ov);
+}
+
+// ── Nome de utilizador ────────────────────────────────────────
+function showUserModal() {
+  const modal = document.getElementById('userModal');
+  modal.style.display = 'flex';
+  document.getElementById('userNameInput').value = _sbUser || '';
+  setTimeout(() => document.getElementById('userNameInput').focus(), 100);
+}
+function confirmUserName() {
+  const name = document.getElementById('userNameInput').value.trim();
+  if (!name) { showToast('⚠️ Introduz o teu nome.'); return; }
+  _sbUser = name;
+  localStorage.setItem('gep_username', name);
+  document.getElementById('userModal').style.display = 'none';
+  document.getElementById('headerUser').textContent = name;
+  if (_currentId) initSupabaseLock();
+  // Primeira abertura (sem nome ainda guardado): o ecrã de fichas ficava
+  // parado em "A carregar..." para sempre, porque nada disparava a lista
+  // depois de confirmar o nome — só carregava à segunda vez que se abria
+  // a app (quando o nome já estava em localStorage). Corrigido aqui.
+  else mostrarLista();
+}
+document.getElementById('userNameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmUserName();
+});
+
+// ── Auto-save silencioso para a nuvem ─────────────────────────
+let _cloudSaving = false;
+// Nº de campos preenchidos na última gravação/carregamento bem-sucedido.
+// Usado pelo tripwire síncrono do visibilitychange (que não pode esperar
+// por uma leitura à base de dados). null = ainda sem referência.
+let _lastCloudFilledCount = null;
+// ── Proteção contra gravações parciais (tripwire) ─────────────
+// Conta campos efetivamente preenchidos num objeto fields.fields
+function _countFilled(inner) {
+  let n = 0;
+  for (const k in inner) {
+    const v = inner[k];
+    if (v === true) { n++; continue; }      // checkbox marcada conta
+    if (v === false) continue;              // checkbox desmarcada não conta
+    if (v !== null && v !== undefined && String(v).trim() !== '') n++;
+  }
+  return n;
+}
+// Lê quantos campos preenchidos a ficha já tem na nuvem (null = sem registo)
+async function _existingFilledCount() {
+  try {
+    const rows = await sbFetch(`gep_data?id=eq.${encodeURIComponent(_currentId)}&select=fields`);
+    if (!rows || !rows.length || !rows[0].fields) return null;
+    return _countFilled(rows[0].fields.fields || {});
+  } catch (e) {
+    return null; // se não conseguimos ler, não bloqueamos (mas o gate de prontidão protege)
+  }
+}
+
+async function autoSaveToCloud(force = false) {
+  if (!_currentId || _isLocked || _cloudSaving || !_formReady) return;
+  _cloudSaving = true;
+  try {
+    await saveData();
+    const fieldsRaw  = localStorage.getItem('gep_fields');
+    const fieldsData = fieldsRaw ? JSON.parse(fieldsRaw) : {};
+    const f          = fieldsData.fields || {};
+    const processoEl = document.getElementById('f_processo');
+    const nomeEdEl   = document.getElementById('f_nome_ed');
+    const processo   = (processoEl && processoEl.value.trim()) || f.f_processo || '(sem número)';
+    const nomeEd     = (nomeEdEl   && nomeEdEl.value.trim())   || f.f_nome_ed  || '';
+
+    // ── Guarda anti-overwrite ──────────────────────────────────
+    // Se o processo no formulário não corresponde à ficha aberta,
+    // o localStorage tem dados de outra ficha → abortar sem guardar.
+    if (_currentProcesso && processo !== _currentProcesso && processo !== '(sem número)') {
+      console.warn(`Auto-save abortado: processo no form (${processo}) ≠ ficha aberta (${_currentProcesso}). localStorage desincronizado.`);
+      _cloudSaving = false;
+      return;
+    }
+
+    // ── Tripwire anti-perda ────────────────────────────────────
+    // Se a nuvem já tem muito mais campos preenchidos do que esta
+    // gravação, é quase de certeza uma gravação parcial → abortar.
+    if (!force) {
+      const newFilled = _countFilled(f);
+      const exFilled  = await _existingFilledCount();
+      if (exFilled !== null && exFilled >= 8 && newFilled < exFilled * 0.6) {
+        console.warn(`Auto-save ABORTADO (tripwire): nuvem tem ${exFilled} campos preenchidos, esta gravação só ${newFilled}.`);
+        showToast('⚠️ Gravação adiada (proteção de dados)');
+        _cloudSaving = false;
+        return;
+      }
+    }
+
+    const allPhotos  = await dbGetAll('photos');
+    const cloudPhotos = await buildCloudPhotos(allPhotos, processo, _currentId, true);
+    await sbFetch('gep_data', 'POST', {
+      id: _currentId, processo, nome_ed: nomeEd,
+      fields: fieldsData, photos: cloudPhotos,
+      saved_by: _sbUser, saved_at: Date.now()
+    });
+    _lastCloudFilledCount = _countFilled(f); // referência atualizada
+    mostrarFormulario(processo);
+    showToast('☁️ Guardado automaticamente');
+  } catch(e) {
+    hideUploadOverlay();
+    console.warn('Auto-save nuvem falhou:', e.message);
+  } finally {
+    _cloudSaving = false;
+  }
+}
+
+// ── Guardar inspecção actual na nuvem ─────────────────────────
+async function saveToSupabase() {
+  if (_isLocked) {
+    alert('⚠️ Não podes guardar — outro utilizador está a editar esta inspecção.\n\nO bloqueio expira após 5 min de inactividade.');
+    return false;
+  }
+  if (!_currentId) { showToast('⚠️ Sem inspecção activa.'); return false; }
+  if (!_formReady) { showToast('⚠️ Ficha ainda a carregar — tenta novamente num instante.'); return false; }
+  try {
+    showToast('⏳ A guardar na nuvem...');
+
+    // Forçar save local primeiro para garantir que localStorage está actualizado
+    await saveData();
+
+    const fieldsRaw  = localStorage.getItem('gep_fields');
+    const fieldsData = fieldsRaw ? JSON.parse(fieldsRaw) : {};
+    const f          = fieldsData.fields || {};
+
+    // Ler processo e nome — DOM primeiro, depois localStorage
+    const processoEl = document.getElementById('f_processo');
+    const nomeEdEl   = document.getElementById('f_nome_ed');
+    const processo   = (processoEl && processoEl.value.trim()) || f.f_processo || '(sem número)';
+    const nomeEd     = (nomeEdEl   && nomeEdEl.value.trim())   || f.f_nome_ed  || '';
+
+    if (!processo || processo === '(sem número)') {
+      if (!confirm('⚠️ O campo "Processo N.º" está vazio.\n\nDesejas guardar mesmo assim?')) return false;
+    }
+
+    // ── Tripwire anti-perda ────────────────────────────────────
+    const newFilled = _countFilled(f);
+    const exFilled  = await _existingFilledCount();
+    if (exFilled !== null && exFilled >= 8 && newFilled < exFilled * 0.6) {
+      if (!confirm(`⚠️ Atenção: esta ficha tem ${exFilled} campos preenchidos na nuvem, mas a gravação atual só tem ${newFilled}.\n\nIsto pode apagar dados. Guardar mesmo assim?`)) {
+        showToast('Gravação cancelada.');
+        return false;
+      }
+    }
+
+    const allPhotos   = await dbGetAll('photos');
+    showToast('⏳ A carregar fotos para a nuvem...');
+    const cloudPhotos = await buildCloudPhotos(allPhotos, processo, _currentId);
+    await sbFetch('gep_data', 'POST', {
+      id       : _currentId,
+      processo : processo,
+      nome_ed  : nomeEd,
+      fields   : fieldsData,
+      photos   : cloudPhotos,
+      saved_by : _sbUser,
+      saved_at : Date.now()
+    });
+    _lastCloudFilledCount = _countFilled(f); // referência atualizada
+    mostrarFormulario(processo);
+    showToast('✓ Guardado na nuvem!');
+    return true;
+  } catch(e) {
+    hideUploadOverlay();
+    console.error(e);
+    showToast('⚠️ Erro ao guardar: ' + e.message);
+    return false;
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  document.querySelectorAll('.field-row input[type="text"]').forEach(input => {
+    const ta = document.createElement('textarea');
+    ta.id          = input.id;
+    ta.placeholder = input.placeholder || '—';
+    ta.value       = input.value;
+    ta.rows        = 1;
+    ta.style.cssText = 'overflow:hidden;min-height:0;height:auto;';
+    input.replaceWith(ta);
+    ta.addEventListener('input', () => autoGrow(ta));
+    autoGrow(ta);
+  });
+  document.querySelectorAll('textarea').forEach(ta => {
+    ta.addEventListener('input', () => autoGrow(ta));
+    autoGrow(ta);
+  });
+
+  buildGaragemPhotos();
+  addFotoEdificio(); addFotoEdificio();
+  addPatologia(); addPatologia(); addPatologia();
+
+  if (_sbUser) document.getElementById('headerUser').textContent = _sbUser;
+
+  if (!_sbUser) showUserModal();
+  else mostrarLista();
+
+  // Auto-save local (1.5s) + auto-save nuvem (8s após última edição)
+  document.addEventListener('input', () => {
+    clearTimeout(window._saveTimer);
+    clearTimeout(window._cloudSaveTimer);
+    window._saveTimer      = setTimeout(() => saveData(), 1500);
+    window._cloudSaveTimer = setTimeout(() => autoSaveToCloud(), 8000);
+  });
+
+  // Guardar na nuvem ao fechar / ocultar o browser
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'hidden') {
+      clearTimeout(window._cloudSaveTimer);
+      // Só gravamos ao ocultar se a ficha estiver TOTALMENTE carregada.
+      // Sem este gate, ocultar o separador durante o carregamento gravava
+      // um formulário parcial por cima do registo completo (perda da 118).
+      if (_currentId && !_isLocked && _formReady) {
+        // Guardar campos em localStorage de forma síncrona
+        const fields = {};
+        document.querySelectorAll('input[type=text][id], input[type=date][id], input[type=number][id], textarea[id]').forEach(el => { fields[el.id] = el.value; });
+        document.querySelectorAll('input[type=checkbox][id]').forEach(el => { fields[el.id] = el.checked; });
+        const fieldsData = { fields, patCount, fotoEdCount };
+        localStorage.setItem('gep_fields', JSON.stringify(fieldsData));
+
+        // Tripwire síncrono: se este scrape tem muito menos campos do que a
+        // última gravação conhecida, é provável gravação parcial → não enviar.
+        const nowFilled = _countFilled(fields);
+        const parcial = (_lastCloudFilledCount !== null && _lastCloudFilledCount >= 8 && nowFilled < _lastCloudFilledCount * 0.6);
+
+        if (!parcial) {
+          const processoEl = document.getElementById('f_processo');
+          const nomeEdEl   = document.getElementById('f_nome_ed');
+          // NOTA: a coluna "photos" é OMITIDA de propósito. No upsert, as
+          // colunas ausentes ficam intactas — assim não apagamos os links
+          // das fotos já gravados (enviar photos:null apagava-os).
+          const payload = JSON.stringify({
+            id       : _currentId,
+            processo : (processoEl && processoEl.value.trim()) || fields.f_processo || '(sem número)',
+            nome_ed  : (nomeEdEl   && nomeEdEl.value.trim())   || fields.f_nome_ed  || '',
+            fields   : fieldsData,
+            saved_by : _sbUser,
+            saved_at : Date.now()
+          });
+          // keepalive garante o envio durante o fecho/ocultação E leva os
+          // cabeçalhos de autenticação (o sendBeacon não os consegue enviar,
+          // pelo que falhava em silêncio). O payload é pequeno (sem fotos),
+          // bem dentro do limite do keepalive.
+          try {
+            await fetch(`${SB_URL}/rest/v1/gep_data?on_conflict=id`, {
+              method: 'POST', keepalive: true,
+              headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+              body: payload
+            });
+          } catch(e) {}
+        } else {
+          console.warn(`Gravação ao ocultar IGNORADA (tripwire): scrape com ${nowFilled} campos vs ${_lastCloudFilledCount} conhecidos.`);
+        }
+      }
+      releaseLock();
+    }
+    if (document.visibilityState === 'visible' && _sbUser && _currentId) initSupabaseLock();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    clearTimeout(window._cloudSaveTimer);
+    clearTimeout(window._saveTimer);
+    releaseLock();
+  });
+});
+</script>
+
+<style>
+@media print {
+  .app-header, .progress-bar, .section-nav, .bottom-nav, .add-btn, .btn-remove, .toast { display: none !important; }
+  .form-section { display: block !important; }
+  .main { padding: 0; }
+  body { background: white; }
+}
+</style>
+<style>
+  #sectionNav  { display: none; }
+  .main        { display: none; }
+  .bottom-nav  { display: none; }
+  .progress-bar { display: none; }
+
+  .insp-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .insp-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+  .insp-card-info { flex: 1; min-width: 0; }
+  .insp-card-proc { font-size:14px; font-weight:600; margin-bottom:2px; }
+  .insp-card-nome { font-size:13px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .insp-card-meta { font-size:11px; color:var(--text-muted); margin-top:4px; }
+  .insp-card-actions { display:flex; gap:6px; flex-shrink:0; }
+  .insp-card-actions button { padding:6px 10px; font-size:12px; border-radius:4px; border:1.5px solid var(--border); background:var(--surface); cursor:pointer; font-family:inherit; }
+  .insp-card-actions button:hover { background:var(--accent-light); }
+  .insp-card-actions .btn-del:hover { background:#fee; border-color:#c55; color:#c00; }
+  .insp-locked { opacity:.6; cursor:default; }
+  .insp-locked-badge { font-size:11px; background:#fff3e0; color:#b85c00; border:1px solid #ffe0b2; border-radius:10px; padding:2px 8px; white-space:nowrap; }
+</style>
+
+<script>
+// ── Ditado por voz (Web Speech API, pt-PT) ──────────────────────
+(function() {
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognitionCtor) return; // navegador sem suporte: não adiciona botões
+
+  let activeRecognition = null;
+  let activeField = null;
+
+  function stopActive() {
+    if (activeRecognition) { try { activeRecognition.stop(); } catch (e) {} }
+  }
+
+  function notify(msg) {
+    if (typeof showToast === 'function') showToast(msg);
+  }
+
+  function startDictation(field, btn) {
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = 'pt-PT';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    let baseValue = field.value;
+    let insertPos = field.selectionStart != null ? field.selectionStart : baseValue.length;
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+      }
+      if (!finalTranscript) return;
+      const before = baseValue.slice(0, insertPos);
+      const after  = baseValue.slice(insertPos);
+      const sep = before && !/\s$/.test(before) ? ' ' : '';
+      const _t0 = finalTranscript.trim().replace(/\s*ponto de interrogação\s*/gi,'? ').replace(/\s*ponto de exclamação\s*/gi,'! ').replace(/\s*ponto e v[ií]rgula\s*/gi,'; ').replace(/\s*dois pontos\s*/gi,': ').replace(/\s*ponto final\s*/gi,'. ').replace(/\s*v[ií]rgula\s*/gi,', ').replace(/\s*nova linha\s*/gi,'\n').replace(/\s*parágrafo\s*/gi,'\n\n').replace(/\s+([.,;:!?])/g,'$1').trim(); const insertion = sep + ((!before || /[.!?]\s*$/.test(before)) ? _t0.charAt(0).toUpperCase() + _t0.slice(1) : _t0) + ' ';
+      baseValue = before + insertion + after;
+      insertPos = before.length + insertion.length;
+      field.value = baseValue;
+      field.setSelectionRange(insertPos, insertPos);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        notify('⚠️ Erro no ditado: ' + event.error);
+      }
+    };
+
+    recognition.onend = () => {
+      btn.classList.remove('listening');
+      if (activeRecognition === recognition) { activeRecognition = null; activeField = null; }
+    };
+
+    try {
+      recognition.start();
+      activeRecognition = recognition;
+      activeField = field;
+      btn.classList.add('listening');
+    } catch (e) {
+      notify('⚠️ Não foi possível iniciar o microfone.');
+    }
+  }
+
+  function makeMicBtn(field) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mic-btn';
+    btn.title = 'Ditar por voz (pt-PT)';
+    btn.textContent = '🎤';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const wasActive = activeField === field;
+      stopActive();
+      if (!wasActive) startDictation(field, btn);
+    });
+    return btn;
+  }
+
+  function attachMic(field) {
+    if (field.dataset.micAttached) return;
+    const wrap = field.closest('.field-input-wrap');
+    if (!wrap) return;
+    field.dataset.micAttached = '1';
+    wrap.classList.add('has-mic');
+    wrap.appendChild(makeMicBtn(field));
+  }
+
+  function attachMicStandalone(field) {
+    if (field.dataset.micAttached) return;
+    const parent = field.parentElement;
+    if (!parent) return;
+    field.dataset.micAttached = '1';
+    if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
+    field.style.paddingRight = '30px';
+    parent.appendChild(makeMicBtn(field));
+  }
+
+  function scan(root) {
+    root.querySelectorAll('.field-input-wrap input[type="text"], .field-input-wrap textarea').forEach(attachMic);
+    root.querySelectorAll('textarea.big-textarea').forEach(attachMicStandalone);
+  }
+
+  scan(document);
+
+  // Observa novos campos criados dinamicamente (patologias, conversão input→textarea, etc.)
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        if (node.matches && node.matches('input[type="text"]') && node.closest('.field-input-wrap')) {
+          attachMic(node);
+        } else if (node.matches && node.matches('textarea')) {
+          if (node.classList.contains('big-textarea')) attachMicStandalone(node);
+          else if (node.closest('.field-input-wrap')) attachMic(node);
+        }
+        if (node.querySelectorAll) scan(node);
+      });
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+</body>
+</html>
