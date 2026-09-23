@@ -146,11 +146,18 @@
   #import-input, .file-input-hidden { display: none; }
 
   @media print {
-    body * { visibility: hidden; }
-    #summary-output, #summary-output * { visibility: visible; }
-    .modal-overlay { position: static !important; inset: auto; display: block !important; opacity: 1 !important; pointer-events: all; background: none; backdrop-filter: none; overflow: visible; height: auto; padding: 0; }
+    /* Imprimir só o resumo. Antes usava-se visibility:hidden, que torna os
+       elementos invisíveis mas deixa-os a ocupar espaço na folha — o
+       formulário e os 33 cartões davam várias páginas em branco antes do
+       resumo. display:none tira-os do fluxo. */
+    body > *:not(#modal-summary) { display: none !important; }
+    body { min-height: 0; padding-bottom: 0; background: #fff; }
+    #modal-summary { position: static !important; inset: auto; display: block !important; opacity: 1 !important; pointer-events: all; background: none; backdrop-filter: none; overflow: visible; height: auto; padding: 0; }
     .modal { width: auto; max-width: none; padding: 0; border: none; background: none; }
-    #summary-output { position: static; left: auto; top: auto; width: 100%; max-height: none; overflow: visible; border: none; padding: 0; }
+    .modal-head, .modal-footer { display: none !important; }
+    #summary-output { position: static; left: auto; top: auto; width: 100%; max-height: none; overflow: visible; border: none; border-radius: 0; padding: 0; }
+    /* Evitar cortar uma patologia a meio entre páginas */
+    #summary-output .p-block { break-inside: avoid; page-break-inside: avoid; }
   }
 </style>
 </head>
