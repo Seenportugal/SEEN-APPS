@@ -333,6 +333,59 @@ function findItem(id){
   return state.patologias.find(p=>p.id===id) || state.custom.find(p=>p.id===id);
 }
 
+// ── CAPITALIZAÇÃO DOS CAMPOS DE TEXTO ────────────────────────────────────
+// Maiúscula na inicial de cada palavra, exceto as de ligação (que em
+// português se escrevem em minúscula no meio da frase). Aplicado ao sair do
+// campo, para não mexer no cursor de quem está a escrever ou a ditar.
+const _LIGACOES = new Set([
+  'a','o','as','os','à','às','ao','aos','um','uma','uns','umas',
+  'de','do','da','dos','das','dum','duma','em','no','na','nos','nas','num','numa',
+  'e','ou','nem','com','sem','por','pelo','pela','pelos','pelas','para','que','se',
+  'sob','sobre','entre','até','desde','contra','após','ante','como','mas','junto'
+]);
+
+function _capitalizarTexto(txt){
+  if (!txt) return txt;
+  let inicioFrase = true;
+  return txt.replace(/(\s+)|(\S+)/gu, (m, espaco, token) => {
+    if (espaco) {
+      if (espaco.indexOf('\n') !== -1) inicioFrase = true;
+      return espaco;
+    }
+    const i = token.search(/\p{L}/u);
+    let saida = token;
+    if (i !== -1) {
+      const resto  = token.slice(i);
+      const nucleo = resto.replace(/[^\p{L}\p{N}'’-]+$/u, '');
+      const soMaiusculas = nucleo.length > 1 && nucleo === nucleo.toUpperCase();
+      const temNumero    = /\p{N}/u.test(nucleo);
+      if (soMaiusculas || temNumero) {
+        saida = token;                                   // siglas (ETICS, PVC) e códigos (B3) ficam intactos
+      } else if (!inicioFrase && _LIGACOES.has(nucleo.toLowerCase())) {
+        saida = token.slice(0, i) + resto.toLowerCase();
+      } else {
+        saida = token.slice(0, i) + resto.charAt(0).toUpperCase() + resto.slice(1);
+      }
+    }
+    inicioFrase = /[.!?]["'’)\]]*$/.test(token);
+    return saida;
+  });
+}
+
+// Um único ouvinte: os cartões são redesenhados a toda a hora, por isso não
+// vale a pena pendurar onblur em cada campo. 'focusout' propaga-se, 'blur' não.
+document.addEventListener('focusout', function(e){
+  const el = e.target;
+  if (!el || !el.matches || !el.matches('.form-input, .form-textarea, .custom-title-input')) return;
+  if (el.type === 'date' || el.id === 'hd-processo') return;   // datas e n.º de processo ficam como estão
+  const antes = el.value;
+  const depois = _capitalizarTexto(antes);
+  if (depois !== antes) {
+    el.value = depois;
+    el.dispatchEvent(new Event('input', { bubbles: true }));   // actualiza o state pelos handlers já existentes
+  }
+});
+
 // ── RENDER ───────────────────────────────────────────────────────────────
 function cardHTML(item){
   const isCustom = item.id.startsWith('c');
