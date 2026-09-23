@@ -491,15 +491,21 @@ function cardHTML(item){
   </div>`;
 }
 
+function _porOrdemAlfabetica(a, b){
+  return a.tipo.localeCompare(b.tipo, 'pt', { sensitivity: 'base' });
+}
+
 function renderList(){
   const q = (document.getElementById('search-input').value||'').toLowerCase().trim();
-  const predefFiltered = state.patologias.filter(p=>!q || p.tipo.toLowerCase().includes(q));
+  const predefFiltered = state.patologias
+    .filter(p=>!q || p.tipo.toLowerCase().includes(q))
+    .sort(_porOrdemAlfabetica);
   document.getElementById('list-predef').innerHTML = predefFiltered.length
     ? predefFiltered.map(cardHTML).join('')
     : `<div class="empty-state">Sem resultados para &ldquo;${esc(q)}&rdquo;</div>`;
 
   document.getElementById('list-custom').innerHTML = state.custom.length
-    ? state.custom.map(cardHTML).join('')
+    ? [...state.custom].sort(_porOrdemAlfabetica).map(cardHTML).join('')
     : `<div class="empty-state">Nenhuma patologia adicional registada</div>`;
 
   const nObs = state.patologias.filter(p=>p.observada).length + state.custom.length;
