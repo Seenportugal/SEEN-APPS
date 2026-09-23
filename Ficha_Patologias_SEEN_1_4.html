@@ -453,6 +453,59 @@ function renderList(){
   document.getElementById('counter-val').textContent = `${nObs} / ${state.patologias.length}`;
 }
 
+// ── Patologias preenchidas mas não marcadas ──────────────────────────────
+// Só as patologias com "observada" a true entram no Resumo e no ficheiro
+// exportado. Quem preenchia um cartão sem tocar no interruptor perdia-o sem
+// dar por isso. Passa a bastar preencher: o cartão marca-se sozinho.
+function _temConteudo(item){
+  if (!item) return false;
+  if ((item.elementosSel||[]).some(Boolean)) return true;
+  if ((item.causasSel||[]).some(Boolean)) return true;
+  if ((item.elementoOutro||'').trim()) return true;
+  if ((item.causaOutro||'').trim()) return true;
+  if ((item.local||'').trim()) return true;
+  if ((item.obs||'').trim()) return true;
+  if ((item.fotos||[]).length) return true;
+  return false;
+}
+
+// comRender = false actualiza só o cartão, para não perder o foco de quem
+// está a escrever no campo nesse momento.
+function _marcarSePreenchida(id, comRender){
+  const item = findItem(id);
+  if (!item || item.observada || !_temConteudo(item)) return false;
+  item.observada = true;
+  if (comRender) { renderList(); return true; }
+  const card = document.getElementById('card-'+id);
+  if (card) {
+    card.classList.add('observed');
+    const tg = card.querySelector('.toggle');
+    if (tg) tg.classList.add('on');
+  }
+  const nObs = state.patologias.filter(p=>p.observada).length + state.custom.length;
+  const cv = document.getElementById('counter-val');
+  if (cv) cv.textContent = `${nObs} / ${state.patologias.length}`;
+  return true;
+}
+
+// Rede de segurança: fichas gravadas antes desta correcção podem ter
+// cartões preenchidos por marcar. Verificado ao abrir o Resumo e ao exportar.
+function _recuperarNaoMarcadas(){
+  const pend = state.patologias.filter(p => !p.observada && _temConteudo(p));
+  if (!pend.length) return;
+  const lista = pend.slice(0,10).map(p => '  ' + p.num + '. ' + p.tipo).join('\n');
+  const msg = `Há ${pend.length} patologia(s) com dados preenchidos que não estão marcadas como observadas `
+            + `e por isso ficam de fora do resumo e do ficheiro exportado:\n\n${lista}`
+            + (pend.length > 10 ? '\n  ...' : '')
+            + `\n\nIncluir na ficha?`;
+  if (confirm(msg)) {
+    pend.forEach(p => { p.observada = true; });
+    markDirty();
+    renderList();
+    toast(`${pend.length} patologia(s) incluída(s)`, 'success');
+  }
+}
+
 // ── INTERACTIONS ─────────────────────────────────────────────────────────
 function toggleExpand(id){
   if (expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
@@ -469,23 +522,27 @@ function toggleElemento(id, i, checked){
   const item = findItem(id);
   item.elementosSel[i] = checked;
   markDirty();
+  _marcarSePreenchida(id, false);
   renderList();
 }
 function toggleCausa(id, i, checked){
   const item = findItem(id);
   item.causasSel[i] = checked;
   markDirty();
+  _marcarSePreenchida(id, false);
   renderList();
 }
 function updateOutro(id, field, val){
   const item = findItem(id);
   item[field] = val;
   markDirty();
+  _marcarSePreenchida(id, false);
 }
 function updateField(id, field, val){
   const item = findItem(id);
   item[field] = val;
   markDirty();
+  _marcarSePreenchida(id, false);
 }
 function updateCustomTitle(id, val){
   const item = findItem(id);
@@ -564,6 +621,7 @@ async function handlePhotoFiles(id, files){
     } catch(e) { console.error(e); }
   }
   markDirty();
+  _marcarSePreenchida(id, false);
   renderList();
   toast(`${files.length} foto(s) adicionada(s)`, 'success');
 }
@@ -585,6 +643,7 @@ function closeLightbox(){
 // ── EXPORT / IMPORT ─────────────────────────────────────────────────────
 function exportJSON(){
   readHeader();
+  _recuperarNaoMarcadas();
   const payload = { _ficha: 'patologias-seen', _versao: 1, exportadoEm: new Date().toISOString(), state };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -685,6 +744,7 @@ function buildSummaryHTML(){
   return html;
 }
 function openSummary(){
+  _recuperarNaoMarcadas();
   document.getElementById('summary-output').innerHTML = buildSummaryHTML();
   document.getElementById('modal-summary').classList.add('open');
 }
