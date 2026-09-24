@@ -1545,9 +1545,17 @@ async function importPatoJSON(file) {
       }
       const { elementos, causas } = _patoSelecionados(item);
 
+      // A PATO tem 5 campos (Descrição, Elemento construtivo, Causa provável,
+      // Localização exata, Observações) e o GEP só 3 (Descrição, Causa,
+      // Localização). Causa e Localização mapeiam diretamente; o elemento
+      // construtivo vai para a Localização (é, no fundo, outra forma de
+      // dizer "onde"), e as Observações ficam na Descrição, ambos com
+      // rótulo próprio para não se confundirem com o texto original.
       let desc = (item.tipo || '(patologia não listada)').trim();
-      if (elementos.length) desc += `\n\nElemento construtivo: ${elementos.join(', ')}`;
       if ((item.obs || '').trim()) desc += `\n\nObservações (PATO): ${item.obs.trim()}`;
+
+      let loc = (item.local || '').trim();
+      if (elementos.length) loc += (loc ? '\n\n' : '') + `Elemento construtivo: ${elementos.join(', ')}`;
 
       const setVal = (id, val) => {
         const el = document.getElementById(id);
@@ -1557,7 +1565,7 @@ async function importPatoJSON(file) {
       };
       setVal(`pat_${n}_desc`,  desc);
       setVal(`pat_${n}_causa`, causas.join('; '));
-      setVal(`pat_${n}_loc`,   item.local || '');
+      setVal(`pat_${n}_loc`,   loc);
 
       // Todas as fotos, sem limite — as 2 primeiras usam as células já
       // criadas pelo cartão, e para as restantes vamos criando mais células.
