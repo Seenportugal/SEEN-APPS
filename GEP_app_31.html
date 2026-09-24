@@ -1256,6 +1256,24 @@ function makePatologiaCard(n) {
   return div;
 }
 
+// Recria um cartão de patologia com um id específico (usado ao restaurar
+// uma ficha a partir da lista exata de ids guardados — patIds — em vez de
+// simplesmente preencher 1..patCount, o que ressuscitava cartões apagados
+// como vazios sempre que a ficha era reaberta). Insere-o na posição correta
+// (ordenado por id), não necessariamente no fim.
+function _insertPatologiaCardSorted(id) {
+  const list = document.getElementById('patologias_list');
+  const card = makePatologiaCard(id);
+  const seguinte = Array.from(list.children).find(c => {
+    const cid = parseInt((c.id || '').replace('pat_', ''), 10);
+    return !isNaN(cid) && cid > id;
+  });
+  if (seguinte) list.insertBefore(card, seguinte);
+  else list.appendChild(card);
+  if (id > patCount) patCount = id;
+  return card;
+}
+
 function addPatologia() {
   patCount++;
   document.getElementById('patologias_list').appendChild(makePatologiaCard(patCount));
@@ -1709,6 +1727,7 @@ async function saveData() {
     localStorage.setItem('gep_fields', JSON.stringify({
       fields,
       patCount,
+      patIds: _patCards().map(_patNum),
       fotoEdCount
     }));
 
@@ -1760,7 +1779,17 @@ async function loadData() {
       for (let i = 0; i < target - fotoEdCount; i++) addFotoEdificio();
     }
     // Recriar patologias
-    if (saved.patCount && saved.patCount > patCount) {
+    // Recriar patologias — usa a lista exata de ids (patIds) quando
+    // disponível, para não ressuscitar cartões que foram apagados
+    // (o antigo "preencher 1..patCount" recriava sempre até ao maior id
+    // alguma vez usado, trazendo de volta como vazios os que tinham sido
+    // eliminados). Fichas antigas sem patIds guardado caem no comportamento
+    // anterior.
+    if (Array.isArray(saved.patIds)) {
+      saved.patIds.forEach(id => {
+        if (!document.getElementById('pat_' + id)) _insertPatologiaCardSorted(id);
+      });
+    } else if (saved.patCount && saved.patCount > patCount) {
       for (let i = 0; i < saved.patCount - patCount; i++) addPatologia();
     }
 
@@ -2595,7 +2624,13 @@ async function populateForm(fieldsData, photosData) {
   const savedFotoCount= Math.ceil((fd.fotoEdCount || 2) / 2) * 2; // sempre par
 
   // Criar patologias / fotos extra necessárias
-  while (patCount    < savedPatCount)  addPatologia();
+  if (Array.isArray(fd.patIds)) {
+    fd.patIds.forEach(id => {
+      if (!document.getElementById('pat_' + id)) _insertPatologiaCardSorted(id);
+    });
+  } else {
+    while (patCount < savedPatCount) addPatologia();
+  }
   while (fotoEdCount < savedFotoCount) addFotoEdificio();
 
   // Cada patologia pode ter mais de 2 fotos (ex.: fichas importadas do PATO) —
@@ -3387,7 +3422,7 @@ window.addEventListener('load', async () => {
         const fields = {};
         document.querySelectorAll('input[type=text][id], input[type=date][id], input[type=number][id], textarea[id]').forEach(el => { fields[el.id] = el.value; });
         document.querySelectorAll('input[type=checkbox][id]').forEach(el => { fields[el.id] = el.checked; });
-        const fieldsData = { fields, patCount, fotoEdCount };
+        const fieldsData = { fields, patCount, patIds: _patCards().map(_patNum), fotoEdCount };
         localStorage.setItem('gep_fields', JSON.stringify(fieldsData));
 
         // Tripwire síncrono: se este scrape tem muito menos campos do que a
