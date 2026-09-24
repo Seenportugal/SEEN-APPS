@@ -2382,14 +2382,30 @@ async function buildCloudPhotos(allPhotos, processo, inspId, silent = false) {
     if (!silent) updateUploadOverlay(done - 1, total, key.replace('area_', '').replace('_', ' foto '));
     try {
       const url = await uploadPhotoToStorage(val.src, processo, inspId, key);
-      cloudPhotos[key] = { url, metas: val.metas || [] };
-      // Actualizar IndexedDB local: substituir base64 por URL para evitar re-upload
-      await dbSet('photos', key, { url, metas: val.metas || [] });
-      // Actualizar também o <img> no DOM para a URL. Sem isto, o img.src ficava
-      // em base64 e a gravação seguinte voltava a tratá-la como foto nova.
-      const areaEl = document.getElementById(key);
-      const imgEl  = areaEl && areaEl.querySelector('img');
-      if (imgEl) imgEl.src = url;
+      // O upload de cada foto demora, e este ciclo percorre-as uma a uma —
+      // se entretanto o utilizador substituiu a foto desta área (o
+      // saveData() do 1.5s grava logo essa substituição no IndexedDB),
+      // "val.src" já não corresponde ao que lá está agora. Sem esta
+      // verificação, o resultado deste upload antigo reescrevia a foto
+      // nova pela antiga, tanto no IndexedDB como no ecrã — de forma
+      // automática e sem qualquer ação do utilizador nesse momento.
+      const aindaAtual = await dbGet('photos', key);
+      if (aindaAtual && aindaAtual.src === val.src) {
+        cloudPhotos[key] = { url, metas: aindaAtual.metas || val.metas || [] };
+        // Actualizar IndexedDB local: substituir base64 por URL para evitar re-upload
+        await dbSet('photos', key, { url, metas: aindaAtual.metas || val.metas || [] });
+        // Actualizar também o <img> no DOM para a URL. Sem isto, o img.src ficava
+        // em base64 e a gravação seguinte voltava a tratá-la como foto nova.
+        const areaEl = document.getElementById(key);
+        const imgEl  = areaEl && areaEl.querySelector('img');
+        if (imgEl && imgEl.src === val.src) imgEl.src = url;
+      } else {
+        // A foto mudou entretanto: descartar este upload. A foto atual
+        // (nova) fica tal como está e será enviada na próxima gravação.
+        cloudPhotos[key] = aindaAtual
+          ? (aindaAtual.src ? { src: aindaAtual.src, metas: aindaAtual.metas || [] } : { url: aindaAtual.url || null, metas: aindaAtual.metas || [] })
+          : null;
+      }
       if (!silent) updateUploadOverlay(done, total, `✓ ${key.replace('area_', '').replace('_', ' foto ')}`);
     } catch(e) {
       console.warn(`Upload falhou para ${key}:`, e.message);
