@@ -1213,7 +1213,7 @@ function makePatologiaCard(n) {
   div.innerHTML = `
     <div class="patologia-header">
       <div class="patologia-num">
-        Patologia N.º <input type="text" id="pat_${n}_num" value="${n}" size="3">
+        Patologia N.º <input type="text" id="pat_${n}_num" value="${n}" size="3" onfocus="this.select()">
       </div>
       <button class="btn-remove" onclick="removePatologia(${n})">✕</button>
     </div>
