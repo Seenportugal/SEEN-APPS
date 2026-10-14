@@ -1,0 +1,778 @@
+<a>
+  <b>x</b>
+</a>
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISIT · SEEN</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#f3f5f7; --card:#fff; --ink:#1d2733; --mut:#6b7785; --line:#dde3ea;
+  --pri:#0e5a6b; --pri2:#0b4756; --acc:#e8f3f5;
+  --ok:#1f8a4c; --okbg:#e3f5ea; --ko:#c0392b; --kobg:#fbe7e5; --wait:#b7791f; --waitbg:#fdf3e1;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:var(--pri);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+header h1{margin:0;font-size:20px;letter-spacing:3px;font-weight:700}
+header .sub{font-size:12px;opacity:.8}
+header .sp{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--acc)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri2)}
+header .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+header .btn:hover{background:rgba(255,255,255,.25)}
+.btn.sm{padding:4px 8px;font-size:12px}
+.btn.danger{color:var(--ko)}
+main{max-width:1280px;margin:0 auto;padding:14px 16px 60px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar select,.bar input{border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:#fff}
+.bar input[type=search]{flex:1;min-width:160px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.proc{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.proc .k{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.proc .v{font-weight:600}
+.stats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.stat{border-radius:6px;padding:6px 10px;text-align:center;min-width:70px;background:var(--acc)}
+.stat b{display:block;font-size:18px}
+.stat span{font-size:11px;color:var(--mut)}
+.stat.ok{background:var(--okbg)} .stat.ko{background:var(--kobg)} .stat.w{background:var(--waitbg)}
+.day{margin:18px 0 8px;font-weight:700;color:var(--pri);display:flex;align-items:center;gap:8px}
+.day::after{content:"";flex:1;height:1px;background:var(--line)}
+.row{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--wait);border-radius:8px;margin-bottom:8px;display:grid;grid-template-columns:62px 110px 1fr 150px 1fr;gap:4px 14px;padding:10px 12px;align-items:start}
+.row.sim{border-left-color:var(--ok)} .row.nao{border-left-color:var(--ko)}
+.row .lab{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.row .hora{font-size:18px;font-weight:700;color:var(--pri)}
+.row .fr{font-size:16px;font-weight:700}
+.row .fr small{display:block;font-size:12px;font-weight:400;color:var(--mut)}
+.row a{color:var(--pri);text-decoration:none;word-break:break-all}
+.row a:hover{text-decoration:underline}
+.row .ct a{display:block;word-break:normal}
+.reg{grid-column:1/-1;display:grid;grid-template-columns:130px 100px 170px 1fr;gap:8px;align-items:end;border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
+.reg input,.reg textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:#fbfcfd}
+.reg .acts{justify-self:end}
+.reg .c-obs{grid-column:1/-1}
+.obsw{position:relative}
+.obsw textarea{resize:vertical;min-height:96px;padding-right:48px;line-height:1.45;overflow:hidden}
+.mic{position:absolute;right:6px;top:6px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:17px;line-height:1;padding:0}
+.mic:hover{background:var(--acc)}
+.mic.on{background:var(--ko);border-color:var(--ko);animation:pulse 1.2s infinite}
+.mic:disabled{opacity:.35;cursor:not-allowed}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.55)}70%{box-shadow:0 0 0 10px rgba(192,57,43,0)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
+.day::after{order:1}
+.day .dfim{order:2;display:flex;gap:6px;align-items:center;font-weight:400}
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--okbg);color:var(--ok);white-space:nowrap}
+.pill.w{background:var(--waitbg);color:var(--wait)}
+#dlgF{width:min(860px,96vw)}
+#dlgF .fl{max-height:62vh;overflow:auto;border:1px solid var(--line);border-radius:6px}
+#dlgF table{width:100%;border-collapse:collapse;font-size:13px}
+#dlgF th,#dlgF td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+#dlgF th{background:var(--acc);position:sticky;top:0;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut)}
+#dlgF tr:hover td{background:#f7fafb}
+#dlgF .nm{font-size:11px;color:var(--mut)}
+#dlgF .pasta{font-size:12px;color:var(--mut);margin:-6px 0 10px}
+.yn{display:flex;gap:4px}
+.yn button{flex:1;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 0;cursor:pointer;font-weight:600}
+.yn button.s.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.yn button.n.on{background:var(--ko);border-color:var(--ko);color:#fff}
+.acts{display:flex;gap:4px}
+.empty{text-align:center;color:var(--mut);padding:50px 20px;background:var(--card);border:1px dashed var(--line);border-radius:8px}
+.empty b{display:block;font-size:16px;color:var(--ink);margin-bottom:6px}
+dialog{border:none;border-radius:10px;padding:0;width:min(560px,94vw);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{padding:16px}
+dialog h3{margin:0 0 12px;color:var(--pri)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+.fg label.full{grid-column:1/-1}
+.fg input,.fg textarea{border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:var(--ink)}
+.dlgacts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1d2733;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw}
+#toast.on{opacity:.95}
+#saved{font-size:12px;opacity:0;transition:.3s}
+#saved.on{opacity:1}
+.printonly{display:none}
+@media (max-width:860px){
+  .row{grid-template-columns:56px 1fr;}
+  .row .c-prop,.row .c-ct,.row .c-em{grid-column:1/-1}
+  .reg{grid-template-columns:1fr 1fr}
+  .reg .c-obs,.reg .c-yn{grid-column:1/-1}
+  .day{flex-wrap:wrap}
+  .reg .acts{grid-column:1/-1;justify-content:flex-end}
+  .stats{margin-left:0}
+  header{position:static}
+}
+@media print{
+  header,.bar,.acts,.noprint,#procInfo,dialog,#toast{display:none!important}
+  body{background:#fff;font-size:10.5px}
+  main{padding:0;max-width:none}
+  .screen{display:none}
+  .printonly{display:block}
+  table.pt{width:100%;table-layout:fixed;border-collapse:collapse;margin-bottom:14px;page-break-inside:auto}
+  table.pt th,table.pt td{word-wrap:break-word;border:1px solid #888;padding:3px 5px;vertical-align:top;text-align:left}
+  table.pt th{background:#e8eef1}
+  table.pt tr{page-break-inside:avoid}
+  .ph{margin:0 0 6px}
+  .ph h2{margin:0;font-size:15px;color:#0e5a6b}
+  .ph div{font-size:11px}
+  .pdate{font-weight:700;margin:10px 0 4px}
+  table.pt td.obs{white-space:pre-wrap}
+}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>VISIT</h1><div class="sub">Registo de visitas a frações · SEEN</div></div>
+  <span id="saved">✔ guardado</span>
+  <div class="sp"></div>
+  <button class="btn" onclick="document.getElementById('fpdf').click()">📄 Importar ficha (PDF)</button>
+  <button class="btn" onclick="novoProcesso()" title="Criar processo sem ficha PDF e inserir as frações uma a uma">＋ Novo processo</button>
+  <button class="btn" onclick="novaMarcacao()" title="Acrescentar fração ao processo selecionado">＋ Fração</button>
+  <button class="btn" onclick="exportCSV()">⬇ CSV</button>
+  <button class="btn" onclick="exportJSON()">⬇ Backup</button>
+  <button class="btn" onclick="abrirListaFichas()" title="Ver e abrir as fichas terminadas guardadas na pasta do Drive">📂 Fichas da pasta</button>
+  <button class="btn" id="btnPasta" onclick="escolherPasta()" title="Pasta do Drive onde as fichas são gravadas (clique para mudar)">📁 Escolher pasta</button>
+  <button class="btn" onclick="document.getElementById('fjson').click()" title="Abrir um ficheiro de ficha (.html) ou backup (.json) avulso">⬆ Abrir ficheiro</button>
+  <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+  <button class="btn" onclick="history.back()">⟵ Painel</button>
+  <input type="file" id="fpdf" accept="application/pdf" multiple hidden>
+  <input type="file" id="fjson" accept=".json,.html,.htm,application/json,text/html" hidden>
+</header>
+
+<main>
+  <div class="bar">
+    <select id="selProc" title="Processo"></select>
+    <div class="chips" id="chipsDia"></div>
+    <input type="search" id="q" placeholder="Pesquisar fração, proprietário, contacto…">
+    <select id="selEstado">
+      <option value="">Todas</option>
+      <option value="pend">Por registar</option>
+      <option value="SIM">Presentes</option>
+      <option value="NÃO">Ausentes</option>
+    </select>
+  </div>
+  <div id="procInfo"></div>
+  <div id="lista" class="screen"></div>
+  <div id="print" class="printonly"></div>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="frm">
+    <h3 id="dlgTit">Marcação</h3>
+    <div class="fg">
+      <label>Processo n.º<input name="processo" required></label>
+      <label>Nome do edifício<input name="edificio"></label>
+      <label class="full">Morada<input name="morada"></label>
+      <label>Dia (marcado)<input name="data" type="date"></label>
+      <label>Hora (marcada)<input name="hora" type="time"></label>
+      <label class="full">Fração<input name="fracao" required placeholder="ex.: A – Loja"></label>
+      <label class="full">Proprietário<textarea name="proprietario" rows="2"></textarea></label>
+      <label>Contacto<input name="contacto"></label>
+      <label>E-mail<input name="email"></label>
+    </div>
+    <div class="dlgacts">
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button>
+      <button class="btn" value="next" id="btnNext" title="Guarda e abre logo a próxima fração do mesmo processo e dia">Guardar e adicionar outra</button>
+      <button class="btn pri" value="ok">Guardar</button>
+    </div>
+    <div id="dlgInfo" style="font-size:12px;color:var(--mut);margin-top:8px"></div>
+  </form>
+</dialog>
+<dialog id="dlgF">
+  <form method="dialog">
+    <h3>Fichas terminadas na pasta</h3>
+    <div class="pasta" id="dlgFPasta"></div>
+    <div class="fl" id="dlgFLista"></div>
+    <div class="dlgacts">
+      <button class="btn" type="button" onclick="escolherPasta().then(h=>h&&abrirListaFichas())">📁 Mudar pasta</button>
+      <button class="btn pri" value="cancel">Fechar</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast"></div>
+
+<script>
+/* ================= PARSER (ficha de marcação SEEN) ================= */
+// PARSER-START
+const VISIT_PARSER = (function(){
+  const MESES={janeiro:1,fevereiro:2,'março':3,marco:3,abril:4,maio:5,junho:6,julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12};
+  const pad=n=>String(n).padStart(2,'0');
+  function parseData(s){
+    if(!s) return '';
+    let m=s.match(/(\d{1,2})\s+de\s+([A-Za-zçÇ]+)\s+de\s+(\d{4})/i);
+    if(m){const mm=MESES[m[2].toLowerCase()]; if(mm) return `${m[3]}-${pad(mm)}-${pad(m[1])}`;}
+    m=s.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+    if(m) return `${m[3]}-${pad(m[2])}-${pad(m[1])}`;
+    return '';
+  }
+  // junta fragmentos de texto contíguos na mesma linha
+  function merge(items){
+    const it=items.filter(i=>i.str&&i.str.trim()).map(i=>({...i,str:i.str.replace(/\s+/g,' ').trim(),cy:i.y-i.h/2}));
+    it.sort((a,b)=>a.cy-b.cy||a.x-b.x);
+    const lines=[];
+    for(const i of it){
+      const L=lines.find(l=>Math.abs(l.cy-i.cy)<2.5);
+      if(L) L.items.push(i); else lines.push({cy:i.cy,items:[i]});
+    }
+    const out=[];
+    for(const l of lines){
+      l.items.sort((a,b)=>a.x-b.x);
+      let cur=null;
+      for(const i of l.items){
+        if(cur && i.x-(cur.x+cur.w)<4){
+          const gap=i.x-(cur.x+cur.w);
+          cur.str+=(gap>0.8?' ':'')+i.str; cur.w=i.x+i.w-cur.x;
+        } else { cur={...i}; out.push(cur); }
+      }
+    }
+    return out;
+  }
+  function joinLines(arr,sepLine){
+    const s=[...arr].sort((a,b)=>a.cy-b.cy||a.x-b.x);
+    const lines=[];
+    for(const i of s){const L=lines.find(l=>Math.abs(l.cy-i.cy)<3); if(L) L.push(i); else lines.push([i]);}
+    return lines.map(l=>l.sort((a,b)=>a.x-b.x).map(i=>i.str).join(' ')).join(sepLine).replace(/\s+/g,' ').trim();
+  }
+  const isTime=s=>/^\d{1,2}\s?[:hH]\s?\d{2}$/.test(s);
+  const normTime=s=>{const m=s.match(/(\d{1,2})\s?[:hH]\s?(\d{2})/);return m?pad(m[1])+':'+m[2]:'';};
+  const isPhone=s=>/^[\d\s+().\/-]+$/.test(s)&&(s.replace(/\D/g,'').length>=6);
+  const isDash=s=>/^[—–\-]+$/.test(s);
+
+  function parse(pages){
+    const sheets=[]; let cur=null;
+    for(const pg of pages){
+      const items=merge(pg.items);
+      const find=re=>items.find(i=>re.test(i.str));
+      const val=re=>{
+        const L=find(re); if(!L) return null;
+        return joinLines(items.filter(i=>i!==L&&i.x>L.x+L.w+12&&Math.abs(i.cy-L.cy)<9),' ');
+      };
+      const dataTxt=val(/^Data da visita/i);
+      const proc=val(/Processo\s*$/i);
+      if(dataTxt!==null || proc!==null){
+        let pTxt=proc||(cur&&cur.processoTxt)||'';
+        const num=(pTxt.match(/\d+\.\d+\.\d{4}/)||[])[0]||pTxt.split(/\s+[–-]\s+/)[0]||'';
+        cur={processoTxt:pTxt,processo:num.trim(),
+             edificio:val(/^Edif[ií]cio\s*\/\s*Condom/i)??(cur?cur.edificio:''),
+             morada:val(/^Morada$/i)??(cur?cur.morada:''),
+             data:parseData(dataTxt||''),dataTxt:dataTxt||'',
+             admin:val(/^Administra/i)||'',rows:[]};
+        sheets.push(cur);
+      }
+      const hF=find(/^Fra[cç][aã]o$/i), hP=find(/^Propriet/i), hC=find(/^Contact/i), hE=find(/^E-?mail$/i);
+      if(!hF||!hP) continue;
+      if(!cur){cur={processo:'',edificio:'',morada:'',data:'',rows:[]};sheets.push(cur);}
+      const hdr=items.filter(i=>/^(Hora|marcada|Hora marcada)$/i.test(i.str)||[hF,hP,hC,hE].includes(i));
+      const top=Math.max(...hdr.map(i=>i.cy))+3;
+      const stop=items.filter(i=>i.cy>top&&(/^Observa[cç]/i.test(i.str)||/seen\.pt/i.test(i.str))).map(i=>i.cy);
+      const bottom=stop.length?Math.min(...stop)-3:1e9;
+      const T=items.filter(i=>i.cy>top&&i.cy<bottom);
+      const frLim=hF.x+hF.w+6;
+      let anchors=T.filter(i=>isTime(i.str)&&i.x<hF.x);
+      if(!anchors.length) anchors=T.filter(i=>/^[A-Z]{1,3}$/.test(i.str)&&i.x+i.w/2<frLim);
+      anchors.sort((a,b)=>a.cy-b.cy);
+      if(!anchors.length) continue;
+      const rows=anchors.map(a=>({a,items:[]}));
+      for(const i of T){
+        if(anchors.includes(i)) continue;
+        let best=rows[0],d=1e9;
+        for(const r of rows){const dd=Math.abs(r.a.cy-i.cy); if(dd<d){d=dd;best=r;}}
+        best.items.push(i);
+      }
+      const cX=hC?hC.x-20:1e9;
+      for(const r of rows){
+        const hora=isTime(r.a.str)?normTime(r.a.str):'';
+        const fr=[],pr=[],ct=[],em=[];
+        if(!isTime(r.a.str)) fr.push(r.a);
+        for(const i of r.items){
+          if(isDash(i.str)) continue;
+          if(isTime(i.str)&&i.x<hF.x) continue;
+          if(i.str.includes('@')) em.push(i);
+          else if(i.x>=cX&&isPhone(i.str)) ct.push(i);
+          else if(i.x+i.w/2<frLim) fr.push(i);
+          else pr.push(i);
+        }
+        fr.sort((a,b)=>a.cy-b.cy||a.x-b.x);
+        const frTxt=fr.length?(fr[0].str+(fr.length>1?' – '+joinLines(fr.slice(1),' '):'')):'';
+        r.out={hora,fracao:frTxt,proprietario:joinLines(pr,' '),contacto:joinLines(ct,' / '),email:joinLines(em,' / ')};
+      }
+      for(const r of rows) if(r.out.fracao||r.out.proprietario) cur.rows.push(r.out);
+    }
+    return sheets;
+  }
+  return {parse,parseData};
+})();
+// PARSER-END
+
+/* ================= DADOS ================= */
+const KEY='seen_visit_v1';
+let DB={marcacoes:[]};
+try{const s=localStorage.getItem(KEY); if(s) DB=JSON.parse(s);}catch(e){}
+if(!Array.isArray(DB.marcacoes)) DB.marcacoes=[];
+if(!DB.fichas||typeof DB.fichas!=='object') DB.fichas={};
+const fmtTS=iso=>{if(!iso)return '';const t=new Date(iso),p=n=>String(n).padStart(2,'0');return `${p(t.getDate())}/${p(t.getMonth()+1)}/${t.getFullYear()} ${p(t.getHours())}:${p(t.getMinutes())}`;};
+const fkey=(p,d)=>(p||'')+'|'+(d||'');
+function marcarAlt(m){const f=m&&DB.fichas[fkey(m.processo,m.data)]; if(f&&f.terminada) f.alterada=true;}
+let UI={proc:'',dia:''};
+try{Object.assign(UI,JSON.parse(localStorage.getItem(KEY+'_ui')||'{}'));}catch(e){}
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmtD=d=>{if(!d)return '';const [y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;};
+const DIAS=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+const fmtDL=d=>{if(!d)return 'Sem data';const dt=new Date(d+'T12:00');return `${fmtD(d)} (${DIAS[dt.getDay()]})`;};
+const now=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return {d:`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,h:`${p(d.getHours())}:${p(d.getMinutes())}`};};
+
+let saveT;
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(DB));localStorage.setItem(KEY+'_ui',JSON.stringify(UI));}catch(e){toast('Erro ao guardar: '+e.message);return;}
+  const s=$('#saved');s.classList.add('on');clearTimeout(saveT);saveT=setTimeout(()=>s.classList.remove('on'),1200);
+}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),3200);}
+
+/* ================= IMPORTAÇÃO PDF ================= */
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+$('#fpdf').addEventListener('change',async e=>{
+  const files=[...e.target.files]; e.target.value='';
+  if(!window.pdfjsLib){toast('Não foi possível carregar o leitor de PDF (sem internet?).');return;}
+  for(const f of files){
+    try{
+      const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+      const pages=[];
+      for(let p=1;p<=pdf.numPages;p++){
+        const page=await pdf.getPage(p); const vp=page.getViewport({scale:1});
+        const tc=await page.getTextContent();
+        pages.push({items:tc.items.map(i=>{const h=i.height||Math.abs(i.transform[3]);return {str:i.str,x:i.transform[4],y:vp.height-i.transform[5],w:i.width,h};})});
+      }
+      importSheets(VISIT_PARSER.parse(pages),f.name);
+    }catch(err){console.error(err);toast('Erro a ler '+f.name+': '+err.message);}
+  }
+});
+function importSheets(sheets,nome){
+  let novas=0,act=0,proc='',dias=new Set();
+  for(const s of sheets){
+    for(const r of s.rows){
+      const rec={processo:s.processo,edificio:s.edificio,morada:s.morada,data:s.data,...r};
+      proc=rec.processo; if(rec.data) dias.add(rec.data);
+      const fk=x=>(x.fracao||'').split(/\s+[–-]\s+/)[0].trim().toUpperCase();
+      const ex=DB.marcacoes.find(m=>m.processo===rec.processo&&m.data===rec.data&&fk(m)===fk(rec));
+      if(ex){Object.assign(ex,rec);act++;}
+      else{DB.marcacoes.push({id:uid(),...rec,v_data:'',v_hora:'',presente:'',obs:''});novas++;}
+    }
+  }
+  if(!novas&&!act){toast('Não foram encontradas marcações em '+nome+'.');return;}
+  UI.proc=proc; UI.dia='';
+  save(); render();
+  toast(`${nome}: ${novas} marcações novas${act?`, ${act} atualizadas`:''} (${dias.size} dia${dias.size!==1?'s':''}).`);
+}
+
+/* ================= BACKUP / EXPORT ================= */
+function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+function exportJSON(){download(`VISIT_backup_${now().d}.json`,JSON.stringify(DB,null,1),'application/json');}
+function lerFicheiroVisit(txt){
+  let d;
+  if(/^\s*</.test(txt)){
+    const el=new DOMParser().parseFromString(txt,'text/html').getElementById('visit-data');
+    if(!el) throw new Error('o ficheiro não é uma ficha VISIT');
+    d=JSON.parse(el.textContent);
+  } else d=JSON.parse(txt);
+  if(!Array.isArray(d.marcacoes)) throw new Error('formato inválido');
+  return d;
+}
+function abrirDados(d,origem){
+  if(d.ficha){ // ficha individual: junta-se às restantes, substitui só esta visita
+    const {processo:p,data:dt}=d.ficha, k=fkey(p,dt);
+    const ex=DB.marcacoes.filter(m=>m.processo===p&&m.data===dt).length;
+    if(ex&&!confirm(`Já existem neste computador ${ex} marcações do processo ${p} em ${fmtD(dt)||'sem data'}.\nSubstituir pela ficha ${origem||'gravada'}?`)) return false;
+    DB.marcacoes=DB.marcacoes.filter(m=>!(m.processo===p&&m.data===dt)).concat(d.marcacoes.map(m=>({...m,id:m.id||uid()})));
+    DB.fichas[k]={...(d.ficha.estado||{}),alterada:false};
+    UI.proc=p; UI.dia=dt; save(); render(); toast(`Ficha aberta: ${p} · ${fmtD(dt)}`);
+    return true;
+  }
+  if(!confirm(`Restaurar backup com ${d.marcacoes.length} marcações? Os dados atuais serão substituídos.`)) return false;
+  if(!d.fichas) d.fichas={};
+  DB=d; save(); render(); toast('Backup restaurado.'); return true;
+}
+$('#fjson').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ abrirDados(lerFicheiroVisit(await f.text()),f.name); }catch(err){toast('Erro: '+err.message);}
+});
+
+/* ================= PASTA DO DRIVE (fichas terminadas) ================= */
+// A pasta escolhida fica memorizada neste browser (IndexedDB). Cada ficha = 1 ficheiro HTML.
+// Regravar uma ficha cria uma revisão nova (_r2, _r3…) e apaga a anterior: o Google Drive
+// lida mal com ficheiros substituídos (cria cópias "_1"), mas não com ficheiros novos.
+const KV={
+  op(){return new Promise((res,rej)=>{const o=indexedDB.open('seen_visit',1);o.onupgradeneeded=()=>o.result.createObjectStore('kv');o.onsuccess=()=>res(o.result);o.onerror=()=>rej(o.error);});},
+  async get(k){try{const db=await this.op();return await new Promise(r=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null);});}catch(e){return null;}},
+  async set(k,v){try{const db=await this.op();await new Promise(r=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r;});}catch(e){}}
+};
+let PASTA=null;
+function estadoPasta(){const b=$('#btnPasta'); if(b) b.textContent='📁 '+(PASTA?PASTA.name:'Escolher pasta');}
+KV.get('pasta').then(h=>{PASTA=h||null; estadoPasta();});
+async function escolherPasta(){
+  if(!window.showDirectoryPicker){toast('Este browser não permite escolher pastas — usar Chrome ou Edge.');return null;}
+  try{
+    const h=await showDirectoryPicker({id:'visit-fichas',mode:'readwrite'});
+    PASTA=h; await KV.set('pasta',h); estadoPasta(); toast('Pasta das fichas: '+h.name); return h;
+  }catch(e){ if(e.name!=='AbortError') toast('Erro: '+e.message); return null; }
+}
+async function permPasta(){
+  if(!PASTA) return false;
+  const o={mode:'readwrite'};
+  try{ if(await PASTA.queryPermission(o)==='granted') return true; return (await PASTA.requestPermission(o))==='granted'; }
+  catch(e){ return false; }
+}
+const RE_FICHA=/^(VISIT_.+_(?:\d{4}-\d{2}-\d{2}|sem_data))(?:_r(\d+))?\.html$/i;
+const nomeBase=(p,d)=>`VISIT_${(p||'sem_processo').replace(/[^\w.-]/g,'_')}_${d||'sem_data'}`;
+async function listarPasta(){
+  const out=[];
+  for await (const [nome,h] of PASTA.entries()){
+    if(h.kind!=='file') continue;
+    const m=nome.match(RE_FICHA); if(m) out.push({nome,h,base:m[1],rev:+(m[2]||1)});
+  }
+  return out;
+}
+async function gravarNaPasta(p,d,html){
+  const base=nomeBase(p,d);
+  const ex=(await listarPasta()).filter(f=>f.base.toLowerCase()===base.toLowerCase());
+  const rev=ex.length?Math.max(...ex.map(f=>f.rev))+1:1;
+  const nome=base+(rev>1?'_r'+rev:'')+'.html';
+  const fh=await PASTA.getFileHandle(nome,{create:true});
+  const w=await fh.createWritable(); await w.write(html); await w.close();
+  for(const f of ex){ try{await PASTA.removeEntry(f.nome);}catch(e){console.warn('VISIT: não apagou',f.nome,e);} }
+  return nome;
+}
+let FL=[];
+async function abrirListaFichas(){
+  if(!window.showDirectoryPicker){toast('Este browser não permite ler pastas — usar “Abrir ficheiro”.');return;}
+  if(!PASTA&&!await escolherPasta()) return;
+  if(!await permPasta()){toast('Sem permissão para ler a pasta.');return;}
+  $('#dlgFPasta').textContent='Pasta: '+PASTA.name;
+  $('#dlgFLista').innerHTML='<div style="padding:20px;color:var(--mut)">A ler a pasta…</div>';
+  if(!$('#dlgF').open) $('#dlgF').showModal();
+  FL=[];
+  try{
+    const fs=await listarPasta(), ult={};
+    for(const f of fs){ const k=f.base.toLowerCase(); if(!ult[k]||f.rev>ult[k].rev) ult[k]=f; }
+    for(const f of Object.values(ult)){
+      try{
+        const file=await f.h.getFile(), d=lerFicheiroVisit(await file.text());
+        if(!d.ficha) continue;
+        FL.push({f,d,mod:file.lastModified});
+      }catch(e){ console.warn('VISIT: ficheiro ignorado',f.nome,e); }
+    }
+  }catch(e){ $('#dlgFLista').innerHTML=`<div style="padding:20px;color:var(--ko)">Erro a ler a pasta: ${esc(e.message)}</div>`; return; }
+  FL.sort((a,b)=>(b.d.ficha.data||'').localeCompare(a.d.ficha.data||'')||(b.d.ficha.processo||'').localeCompare(a.d.ficha.processo||''));
+  if(!FL.length){ $('#dlgFLista').innerHTML='<div style="padding:20px;color:var(--mut)">Ainda não há fichas terminadas nesta pasta.</div>'; return; }
+  $('#dlgFLista').innerHTML=`<table><thead><tr><th>Dia</th><th>Processo · Edifício</th><th>Frações</th><th>Terminada</th><th></th></tr></thead><tbody>`+
+    FL.map((x,i)=>{
+      const {ficha,marcacoes:L}=x.d, r=L[0]||{}, s=L.filter(m=>m.presente==='SIM').length, n=L.filter(m=>m.presente==='NÃO').length;
+      const loc=DB.marcacoes.some(m=>m.processo===ficha.processo&&m.data===ficha.data);
+      return `<tr><td><b>${fmtD(ficha.data)||'—'}</b></td>
+        <td><b>${esc(ficha.processo)}</b> · ${esc(r.edificio)}<div class="nm">${esc(x.f.nome)}</div></td>
+        <td>${L.length} <span class="nm">(${s} pres. · ${n} aus.)</span></td>
+        <td>${fmtTS((ficha.estado||{}).terminada)||fmtTS(new Date(x.mod).toISOString())}</td>
+        <td style="text-align:right;white-space:nowrap">${loc?'<span class="nm">neste PC · </span>':''}<button type="button" class="btn sm pri" onclick="abrirDaPasta(${i})">Abrir</button></td></tr>`;
+    }).join('')+'</tbody></table>';
+}
+function abrirDaPasta(i){
+  const x=FL[i]; if(!x) return;
+  if(abrirDados(x.d,'da pasta ('+x.f.nome+')')) $('#dlgF').close();
+}
+
+function exportCSV(){
+  const L=filtrados(true);
+  if(!L.length){toast('Nada para exportar.');return;}
+  const H=['Processo n.º','Edifício','Morada','Dia marcado','Hora marcada','Fração','Proprietário','Contacto','Email','Dia visita','Hora visita','Presente','Observações'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=L.map(m=>[m.processo,m.edificio,m.morada,fmtD(m.data),m.hora,m.fracao,m.proprietario,m.contacto,m.email,fmtD(m.v_data),m.v_hora,m.presente,m.obs].map(q).join(';'));
+  download(`VISIT_${(UI.proc||'todos').replace(/[^\w.-]/g,'_')}.csv`,'﻿'+H.map(q).join(';')+'\n'+rows.join('\n'),'text/csv');
+}
+
+/* ================= EDIÇÃO ================= */
+let editId=null;
+let nDlg=0; // frações inseridas nesta sequência
+function abrirDlg(m,tit,foco){
+  editId=m.id||null; $('#dlgTit').textContent=tit;
+  const f=$('#frm'); for(const k of ['processo','edificio','morada','data','hora','fracao','proprietario','contacto','email']) f.elements[k].value=m[k]||'';
+  $('#btnNext').style.display=editId?'none':'';
+  $('#dlgInfo').textContent=!editId&&nDlg?`${nDlg} fração(ões) inserida(s) nesta sequência.`:'';
+  $('#dlg').showModal();
+  const el=f.elements[foco||(m.processo?'fracao':'processo')]; if(el) el.focus();
+}
+function novoProcesso(){
+  nDlg=0;
+  abrirDlg({data:now().d},'Novo processo · 1.ª fração','processo');
+}
+function novaMarcacao(p,d){
+  nDlg=0;
+  const ref=DB.marcacoes.find(m=>m.processo===(p||UI.proc));
+  if(!ref){novoProcesso();return;}
+  const dia=d??(UI.dia||ref.data);
+  const ult=DB.marcacoes.filter(m=>m.processo===ref.processo&&m.data===dia&&m.hora).map(m=>m.hora).sort().pop();
+  abrirDlg({processo:ref.processo,edificio:ref.edificio,morada:ref.morada,data:dia,hora:maisMeiaHora(ult)},'Nova fração · '+ref.processo);
+}
+const maisMeiaHora=h=>{const m=(h||'').match(/^(\d{1,2}):(\d{2})$/); if(!m) return ''; const t=(+m[1])*60+(+m[2])+30; return t>=24*60?'':String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');};
+function editar(id){const m=DB.marcacoes.find(x=>x.id===id); if(m) abrirDlg(m,'Editar marcação');}
+function apagar(id){
+  const m=DB.marcacoes.find(x=>x.id===id); if(!m) return;
+  if(!confirm(`Apagar a marcação da fração ${m.fracao}?`)) return;
+  DB.marcacoes=DB.marcacoes.filter(x=>x.id!==id); save(); render();
+}
+$('#dlg').addEventListener('close',()=>{
+  const rv=$('#dlg').returnValue;
+  if(rv!=='ok'&&rv!=='next') return;
+  const f=$('#frm'),d={};
+  for(const k of ['processo','edificio','morada','data','hora','fracao','proprietario','contacto','email']) d[k]=f.elements[k].value.trim();
+  if(!d.processo||!d.fracao){toast('Processo e fração são obrigatórios.');return;}
+  if(editId){const m=DB.marcacoes.find(x=>x.id===editId); marcarAlt(m); Object.assign(m,d); marcarAlt(m);}
+  else DB.marcacoes.push({id:uid(),...d,v_data:'',v_hora:'',presente:'',obs:''});
+  UI.proc=d.processo; if(!editId){UI.dia=d.data; nDlg++;} save(); render();
+  if(rv==='next') setTimeout(()=>abrirDlg({processo:d.processo,edificio:d.edificio,morada:d.morada,data:d.data,hora:maisMeiaHora(d.hora)},`Nova fração · ${d.processo}`,'fracao'),60);
+  else if(!editId) toast(`Fração ${d.fracao} adicionada ao processo ${d.processo}.`);
+});
+function apagarProcesso(){
+  if(!UI.proc) return;
+  const n=DB.marcacoes.filter(m=>m.processo===UI.proc).length;
+  if(!confirm(`Apagar TODAS as ${n} marcações do processo ${UI.proc}?`)) return;
+  DB.marcacoes=DB.marcacoes.filter(m=>m.processo!==UI.proc); UI.proc=''; UI.dia=''; save(); render();
+}
+
+/* ================= REGISTO DA VISITA ================= */
+function setPres(id,v){
+  const m=DB.marcacoes.find(x=>x.id===id); if(!m) return;
+  m.presente=(m.presente===v)?'':v; marcarAlt(m);
+  if(m.presente&&!m.v_data){const n=now();m.v_data=n.d;m.v_hora=n.h;}
+  save(); render(id);
+}
+function setCampo(id,k,v){const m=DB.marcacoes.find(x=>x.id===id); if(!m) return; m[k]=v; marcarAlt(m); save(); if(k!=='obs') renderStats();}
+function agora(id){const m=DB.marcacoes.find(x=>x.id===id); if(!m) return; const n=now(); m.v_data=n.d; m.v_hora=n.h; marcarAlt(m); save(); render(id);}
+function obsInput(id,ta){setCampo(id,'obs',ta.value); if(RS.id===id) RS.base=ta.value; autoH(ta);}
+function autoH(ta){ta.style.height='auto'; ta.style.height=Math.max(96,ta.scrollHeight+2)+'px';}
+
+/* ================= DITADO (Web Speech API, pt-PT) ================= */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const RS={r:null,id:null,base:''};
+function pontuar(t){
+  return t.replace(/\s*\bponto final\b/gi,'.').replace(/\s*\bponto de interroga[çc][ãa]o\b/gi,'?')
+          .replace(/\s*\bv[íi]rgula\b/gi,',').replace(/\s*\bdois pontos\b/gi,':')
+          .replace(/\s*\b(nova linha|par[áa]grafo)\b\s*/gi,'\n');
+}
+function juntar(a,b){
+  b=pontuar(b).trim(); if(!b) return a;
+  const fim=a.replace(/[ \t]+$/,'');
+  const novaFrase=!fim||/[.!?\n]$/.test(fim);
+  if(novaFrase) b=b.charAt(0).toUpperCase()+b.slice(1);
+  b=b.replace(/([.!?]\s+|\n)([a-zà-ÿ])/g,(x,p1,c)=>p1+c.toUpperCase());
+  if(!fim) return b;
+  return fim+(/^[.,:;!?\n]/.test(b)||/\n$/.test(fim)?'':' ')+b;
+}
+function pararDitado(){if(RS.r){const r=RS.r; RS.r=null; try{r.abort();}catch(e){} const b=document.getElementById('m_'+RS.id); if(b) b.classList.remove('on'); RS.id=null;}}
+function mic(id){
+  if(!SR){toast('Ditado não suportado neste browser (usar Chrome ou Edge).');return;}
+  const era=RS.id; pararDitado(); if(era===id) return;
+  const ta=document.getElementById('o_'+id), btn=document.getElementById('m_'+id); if(!ta) return;
+  const r=new SR(); r.lang='pt-PT'; r.continuous=true; r.interimResults=true;
+  RS.r=r; RS.id=id; RS.base=ta.value;
+  r.onresult=e=>{
+    let fin='',tmp='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else tmp+=t;}
+    if(fin){RS.base=juntar(RS.base,fin); setCampo(id,'obs',RS.base);}
+    ta.value=tmp?juntar(RS.base,tmp):RS.base; autoH(ta);
+  };
+  r.onerror=e=>{
+    if(!['no-speech','aborted'].includes(e.error)) pararDitado();
+    if(e.error==='not-allowed'||e.error==='service-not-allowed') toast(location.protocol==='file:'?'Microfone bloqueado: abrir a app por HTTPS (ex.: GitHub Pages), como no GEP.':'Sem permissão para usar o microfone.');
+    else if(e.error==='network') toast('Ditado indisponível: sem ligação à internet.');
+    else if(e.error!=='no-speech'&&e.error!=='aborted') toast('Ditado: '+e.error);
+  };
+  r.onend=()=>{
+    if(RS.r!==r) return;
+    // o Chrome termina sozinho após silêncio: retoma enquanto o botão estiver ativo
+    try{r.start();}catch(e){RS.r=null;RS.id=null;btn.classList.remove('on');}
+  };
+  btn.classList.add('on');
+  try{r.start();}catch(e){pararDitado();toast('Não foi possível iniciar o ditado.');}
+}
+
+/* ================= TERMINAR VISITA → GRAVAR FICHA ================= */
+const HANDLES={}; // ficheiro escolhido por ficha (sessão atual) → regravações escrevem no mesmo ficheiro
+async function gravarFicheiro(k,nome,conteudo){
+  if(window.showSaveFilePicker){
+    try{
+      let h=HANDLES[k];
+      if(!h){h=await showSaveFilePicker({suggestedName:nome,types:[{description:'Ficha VISIT',accept:{'text/html':['.html']}}]}); HANDLES[k]=h;}
+      const w=await h.createWritable(); await w.write(conteudo); await w.close();
+      return h.name||nome;
+    }catch(e){ if(e.name==='AbortError') return null; console.warn(e); delete HANDLES[k]; }
+  }
+  download(nome,conteudo,'text/html'); return nome;
+}
+function fichaHTML(p,d,L,est){
+  const ref=L[0]||{}, s=L.filter(m=>m.presente==='SIM').length, n=L.filter(m=>m.presente==='NÃO').length;
+  const dados=JSON.stringify({app:'VISIT',versao:1,ficha:{processo:p,data:d,estado:est},marcacoes:L}).replace(/</g,'\\u003c');
+  const linhas=L.map(m=>`<tr class="${m.presente==='SIM'?'s':m.presente==='NÃO'?'n':''}"><td>${esc(m.hora)}</td><td>${esc(m.fracao)}</td><td>${esc(m.proprietario)}</td><td>${esc(m.contacto)}</td><td>${esc(m.email)}</td><td>${fmtD(m.v_data)}</td><td>${esc(m.v_hora)}</td><td class="pr">${esc(m.presente)||'—'}</td><td class="obs">${esc(m.obs)}</td></tr>`).join('');
+  return `<!DOCTYPE html><html lang="pt-PT"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VISIT ${esc(p)} · ${fmtD(d)}</title>
+<style>body{font-family:"Segoe UI",Arial,sans-serif;color:#1d2733;margin:24px;font-size:13px}h1{color:#0e5a6b;font-size:20px;margin:0 0 4px}
+.m{color:#6b7785;margin-bottom:14px}.m b{color:#1d2733}table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border:1px solid #9aa5b1;padding:4px 6px;vertical-align:top;text-align:left;word-wrap:break-word}th{background:#e8eef1}
+td.obs{white-space:pre-wrap}tr.s td.pr{color:#1f8a4c;font-weight:700}tr.n td.pr{color:#c0392b;font-weight:700}
+.st{margin:0 0 12px}.st span{display:inline-block;margin-right:16px}@media print{body{margin:0;font-size:10.5px}tr{page-break-inside:avoid}}</style></head><body>
+<h1>Registo de visitas às frações</h1>
+<div class="m"><b>Processo n.º</b> ${esc(p)} · <b>Edifício</b> ${esc(ref.edificio)} · ${esc(ref.morada)}<br>
+<b>Dia marcado:</b> ${fmtDL(d)} · <b>Visita terminada:</b> ${fmtTS(est.terminada)}</div>
+<div class="st"><span><b>${L.length}</b> marcações</span><span><b>${s}</b> presentes</span><span><b>${n}</b> ausentes</span><span><b>${L.length-s-n}</b> sem registo</span></div>
+<table><colgroup><col style="width:5%"><col style="width:10%"><col style="width:16%"><col style="width:11%"><col style="width:15%"><col style="width:8%"><col style="width:5%"><col style="width:6%"><col style="width:24%"></colgroup>
+<thead><tr><th>Hora</th><th>Fração</th><th>Proprietário</th><th>Contacto</th><th>Email</th><th>Dia visita</th><th>Hora</th><th>Presente</th><th>Observações</th></tr></thead><tbody>${linhas}</tbody></table>
+<p class="m" style="margin-top:14px">SEEN · Diagnóstico, Consultoria e Fiscalização — ficha gerada pela app VISIT (pode ser reaberta na VISIT em “Fichas da pasta”).</p>
+<script type="application/json" id="visit-data">${dados}<\/script></body></html>`;
+}
+async function terminar(p,d){
+  pararDitado();
+  const L=DB.marcacoes.filter(m=>m.processo===p&&m.data===d).sort(sortM);
+  if(!L.length) return;
+  // pasta do Drive: pedir/confirmar acesso já (precisa do clique do utilizador)
+  let naPasta=false;
+  if(window.showDirectoryPicker){
+    if(!PASTA){ toast('Escolha a pasta do Drive onde ficam as fichas.'); await escolherPasta(); }
+    naPasta=await permPasta();
+  }
+  const k=fkey(p,d), f=DB.fichas[k]||{};
+  if(!f.terminada){
+    const pend=L.filter(m=>!m.presente).length;
+    if(pend&&!confirm(`Há ${pend} fração(ões) sem registo de presença.\nTerminar a visita e gravar a ficha mesmo assim?`)) return;
+  }
+  const est={...f,terminada:new Date().toISOString(),alterada:false};
+  const html=fichaHTML(p,d,L,est);
+  let gravado=null;
+  if(naPasta){
+    try{ gravado=await gravarNaPasta(p,d,html); }
+    catch(e){ console.error(e); toast('Não foi possível gravar na pasta ('+e.message+'). A gravar como transferência.'); }
+  }
+  if(!gravado) gravado=await gravarFicheiro(k,nomeBase(p,d)+'.html',html);
+  if(!gravado) return;
+  est.ficheiro=gravado; DB.fichas[k]=est; save(); render();
+  toast(naPasta&&PASTA?`Ficha gravada em ${PASTA.name}: ${gravado}`:`Ficha gravada: ${gravado}`);
+}
+
+/* ================= RENDER ================= */
+const sortM=(a,b)=>(a.data||'').localeCompare(b.data||'')||(a.hora||'99').localeCompare(b.hora||'99')||(a.fracao||'').localeCompare(b.fracao||'');
+function filtrados(ignoreEstado){
+  const q=$('#q').value.trim().toLowerCase(), est=$('#selEstado').value;
+  return DB.marcacoes.filter(m=>(!UI.proc||m.processo===UI.proc)&&(!UI.dia||m.data===UI.dia)
+    &&(!q||[m.fracao,m.proprietario,m.contacto,m.email,m.obs].join(' ').toLowerCase().includes(q))
+    &&(ignoreEstado||!est||(est==='pend'?!m.presente:m.presente===est))).sort(sortM);
+}
+function telLinks(s){
+  if(!s) return '<span style="color:var(--mut)">—</span>';
+  return s.split(/\s*\/\s*/).map(t=>`<a href="tel:${t.replace(/[^\d+]/g,'')}">${esc(t)}</a>`).join('');
+}
+function mailLinks(s){
+  if(!s) return '<span style="color:var(--mut)">—</span>';
+  return s.split(/\s*\/\s*/).map(t=>`<a href="mailto:${esc(t)}">${esc(t)}</a>`).join('<br>');
+}
+function renderStats(){
+  const L=DB.marcacoes.filter(m=>(!UI.proc||m.processo===UI.proc)&&(!UI.dia||m.data===UI.dia));
+  const ref=DB.marcacoes.find(m=>m.processo===UI.proc);
+  const s=L.filter(m=>m.presente==='SIM').length, n=L.filter(m=>m.presente==='NÃO').length;
+  $('#procInfo').innerHTML=!L.length?'':`
+  <div class="proc">
+    ${ref?`<div><div class="k">Processo n.º</div><div class="v">${esc(ref.processo)}</div></div>
+    <div><div class="k">Edifício</div><div class="v">${esc(ref.edificio)}</div></div>
+    <div><div class="k">Morada</div><div class="v">${esc(ref.morada)}</div></div>`:'<div><div class="v">Todos os processos</div></div>'}
+    <div class="stats">
+      <div class="stat"><b>${L.length}</b><span>Marcações</span></div>
+      <div class="stat ok"><b>${s}</b><span>Presentes</span></div>
+      <div class="stat ko"><b>${n}</b><span>Ausentes</span></div>
+      <div class="stat w"><b>${L.length-s-n}</b><span>Por registar</span></div>
+    </div>
+    ${UI.proc?'<button class="btn sm danger noprint" onclick="apagarProcesso()">Apagar processo</button>':''}
+  </div>`;
+}
+function render(focusId){
+  pararDitado();
+  // processos
+  const procs=[...new Map(DB.marcacoes.map(m=>[m.processo,m])).values()].sort((a,b)=>(b.processo||'').localeCompare(a.processo||''));
+  if(UI.proc&&!procs.some(p=>p.processo===UI.proc)) UI.proc='';
+  if(!UI.proc&&procs.length) UI.proc=procs[0].processo;
+  $('#selProc').innerHTML=(procs.length>1?'<option value="">Todos os processos</option>':'')+procs.map(p=>`<option value="${esc(p.processo)}"${p.processo===UI.proc?' selected':''}>${esc(p.processo)} · ${esc(p.edificio)}</option>`).join('')||'<option value="">— sem processos —</option>';
+  // dias
+  const dias=[...new Set(DB.marcacoes.filter(m=>!UI.proc||m.processo===UI.proc).map(m=>m.data))].sort();
+  if(UI.dia&&!dias.includes(UI.dia)) UI.dia='';
+  $('#chipsDia').innerHTML=dias.length>1?`<button class="chip${!UI.dia?' on':''}" data-d="">Todos os dias</button>`+dias.map(d=>`<button class="chip${d===UI.dia?' on':''}" data-d="${d}">${fmtD(d)||'Sem data'}</button>`).join(''):'';
+  renderStats();
+  const L=filtrados();
+  if(!DB.marcacoes.length){
+    $('#lista').innerHTML=`<div class="empty"><b>Sem marcações</b>Importe a ficha de marcação de visitas (PDF) enviada pela administração do condomínio,<br>ou crie o processo manualmente e insira as frações uma a uma.<br><br><button class="btn pri" onclick="document.getElementById('fpdf').click()">📄 Importar ficha (PDF)</button> <button class="btn" onclick="novoProcesso()">＋ Novo processo (sem PDF)</button></div>`;
+    $('#print').innerHTML='';return;
+  }
+  let html='',last=null;
+  for(const m of L){
+    const k=m.processo+'|'+m.data;
+    if(k!==last){
+      const f=DB.fichas[fkey(m.processo,m.data)]||{};
+      const fim=f.terminada?`<span class="pill" title="${esc(f.ficheiro||'')}">✔ Terminada ${fmtTS(f.terminada)}</span>${f.alterada?'<span class="pill w">alterações por gravar</span>':''}<button class="btn sm${f.alterada?' pri':''}" data-p="${esc(m.processo)}" data-d="${esc(m.data)}" onclick="terminar(this.dataset.p,this.dataset.d)">💾 Gravar ficha</button>`
+        :`<button class="btn sm pri" data-p="${esc(m.processo)}" data-d="${esc(m.data)}" onclick="terminar(this.dataset.p,this.dataset.d)">✔ Terminar visita</button>`;
+      const add=`<button class="btn sm" data-p="${esc(m.processo)}" data-d="${esc(m.data)}" onclick="novaMarcacao(this.dataset.p,this.dataset.d)" title="Acrescentar fração a este dia">＋ Fração</button>`;
+      html+=`<div class="day">${!UI.proc?esc(m.processo)+' · ':''}${fmtDL(m.data)}<span class="dfim noprint">${add}${fim}</span></div>`;last=k;
+    }
+    const [fl,...fr]=(m.fracao||'').split(/\s+[–-]\s+/);
+    const cls=m.presente==='SIM'?'sim':m.presente==='NÃO'?'nao':'';
+    html+=`<div class="row ${cls}" id="r_${m.id}">
+      <div><div class="lab">Hora</div><div class="hora">${esc(m.hora)||'—'}</div></div>
+      <div><div class="lab">Fração</div><div class="fr">${esc(fl)}<small>${esc(fr.join(' – '))}</small></div></div>
+      <div class="c-prop"><div class="lab">Proprietário</div>${esc(m.proprietario)||'—'}</div>
+      <div class="c-ct ct"><div class="lab">Contacto</div>${telLinks(m.contacto)}</div>
+      <div class="c-em"><div class="lab">Email</div>${mailLinks(m.email)}</div>
+      <div class="reg">
+        <label><div class="lab">Dia da visita</div><input type="date" value="${esc(m.v_data)}" onchange="setCampo('${m.id}','v_data',this.value)"></label>
+        <label><div class="lab">Hora</div><input type="time" value="${esc(m.v_hora)}" onchange="setCampo('${m.id}','v_hora',this.value)"></label>
+        <div class="c-yn"><div class="lab">Presente</div><div class="yn">
+          <button class="s${m.presente==='SIM'?' on':''}" onclick="setPres('${m.id}','SIM')">SIM</button>
+          <button class="n${m.presente==='NÃO'?' on':''}" onclick="setPres('${m.id}','NÃO')">NÃO</button></div></div>
+        <div class="acts">
+          <button class="btn sm" title="Registar dia/hora atuais" onclick="agora('${m.id}')">⏱ Agora</button>
+          <button class="btn sm" title="Editar dados" onclick="editar('${m.id}')">✎</button>
+          <button class="btn sm danger" title="Apagar" onclick="apagar('${m.id}')">✕</button>
+        </div>
+        <div class="c-obs"><div class="lab">Observações</div><div class="obsw">
+          <textarea id="o_${m.id}" rows="4" placeholder="Escrever ou ditar (🎤). Diga “ponto final”, “vírgula”, “nova linha”…" oninput="obsInput('${m.id}',this)">${esc(m.obs)}</textarea>
+          <button type="button" class="mic noprint" id="m_${m.id}" title="${SR?'Ditar observações (clique de novo para parar)':'Ditado não suportado neste browser'}"${SR?'':' disabled'} onclick="mic('${m.id}')">🎤</button>
+        </div></div>
+      </div>
+    </div>`;
+  }
+  $('#lista').innerHTML=html||'<div class="empty">Nenhuma marcação corresponde ao filtro.</div>';
+  renderPrint(L);
+  document.querySelectorAll('.obsw textarea').forEach(autoH);
+  if(focusId){const el=document.getElementById('r_'+focusId); if(el&&el.getBoundingClientRect().top<70) el.scrollIntoView({block:'center'});}
+}
+function renderPrint(L){
+  const ref=DB.marcacoes.find(m=>m.processo===UI.proc);
+  let h=ref?`<div class="ph"><h2>Registo de visitas às frações</h2><div><b>Processo n.º</b> ${esc(ref.processo)} · <b>Edifício</b> ${esc(ref.edificio)} · ${esc(ref.morada)}</div></div>`:'<div class="ph"><h2>Registo de visitas às frações</h2></div>';
+  const g={}; for(const m of L){(g[m.processo+'|'+m.data]=g[m.processo+'|'+m.data]||[]).push(m);}
+  for(const k in g){
+    const [p,d]=k.split('|');
+    h+=`<div class="pdate">${!UI.proc?esc(p)+' · ':''}Dia marcado: ${fmtDL(d)}</div><table class="pt"><colgroup><col style="width:5%"><col style="width:9%"><col style="width:15%"><col style="width:11%"><col style="width:15%"><col style="width:8%"><col style="width:5%"><col style="width:6%"><col style="width:26%"></colgroup><thead><tr><th>Hora</th><th>Fração</th><th>Proprietário</th><th>Contacto</th><th>Email</th><th>Dia visita</th><th>Hora</th><th>Presente</th><th>Observações</th></tr></thead><tbody>`+
+      g[k].map(m=>`<tr><td>${esc(m.hora)}</td><td>${esc(m.fracao)}</td><td>${esc(m.proprietario)}</td><td>${esc(m.contacto)}</td><td>${esc(m.email)}</td><td>${fmtD(m.v_data)}</td><td>${esc(m.v_hora)}</td><td><b>${esc(m.presente)}</b></td><td class="obs">${esc(m.obs)}</td></tr>`).join('')+'</tbody></table>';
+  }
+  $('#print').innerHTML=h;
+}
+$('#selProc').addEventListener('change',e=>{UI.proc=e.target.value;UI.dia='';save();render();});
+$('#chipsDia').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;UI.dia=b.dataset.d;save();render();});
+$('#q').addEventListener('input',()=>render());
+$('#selEstado').addEventListener('change',()=>render());
+render();
+</script>
+</body>
+</html>
