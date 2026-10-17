@@ -272,14 +272,15 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 
 <script>
 /* ============================================================
-   INFRAPAT · v1.5.1 · Registo de patologias no interior das frações
+   INFRAPAT · v1.5.2 · Registo de patologias no interior das frações
    Uma ficha por fração: {id, processo, edificio, morada, fracao, andar, tipo,
    proprietario, presente, dia, hora, marc, pats:{k:{locs:{},locOutro,obs,fotos[]}}, patOutro,
    ensaios:{k:true}, ensaioOutro, obs, criado, atualizado}
    Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
    Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
    ============================================================ */
-const VERSAO='1.5.1';
+const VERSAO='1.5.2';
+try{document.querySelector('header h1 small').textContent+=' · v'+VERSAO;}catch(e){}
 const PATS=[
   ['inf_ext','Infiltrações com origem no exterior'],
   ['condens','Condensações superficiais / fungos / bolores'],
@@ -385,10 +386,10 @@ $('#fileVisit').addEventListener('change',e=>importarVisit([...e.target.files]))
 
 /* ---------- backup ---------- */
 function descarregar(nome,conteudo,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([conteudo],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
-/* Backup: no telemóvel abre a folha de partilha → escolher "Drive" e a pasta.
-   No computador (Chrome/Edge) abre "Guardar como" → pode escolher a pasta do Drive (G:\…).
-   Sem nenhuma das duas, descarrega para Transferências. */
-const _mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+/* Backup:
+   - Computador (Chrome/Edge): "Guardar como" → pode escolher a pasta do Drive (G:\…).
+   - Telemóvel (Android/iPhone): folha de partilha → "Drive" / "Guardar em Ficheiros" → pasta.
+   - Sem nenhuma das duas: descarrega para Transferências. */
 function _ficheiroPartilhavel(nome,txt){
   // O Chrome Android não aceita partilhar .json → tenta .json, senão .txt (conteúdo igual; o Restaurar aceita ambos)
   for(const [n,t] of [[nome,'application/json'],[nome.replace(/\.json$/,'.txt'),'text/plain']]){
@@ -396,22 +397,32 @@ function _ficheiroPartilhavel(nome,txt){
   }
   return null;
 }
-$('#bBackup').onclick=async()=>{ await flush(); const L=UI.proc?FICHAS.filter(f=>f.processo===UI.proc):FICHAS;
+async function _partilhar(f){
+  try{ await navigator.share({files:[f],title:f.name}); toast('Backup enviado. No Drive, escolha a pasta e toque em Guardar.'); return true; }
+  catch(e){
+    if(e.name==='AbortError'){ toast('Backup cancelado.'); return true; }
+    if(e.name==='NotAllowedError'){ // o browser perdeu o "toque" do utilizador → pede um segundo toque
+      const b=$('#bBackup'), txt0=b.textContent; b.textContent='📤 Toque para partilhar';
+      b.onclick=async()=>{ b.textContent=txt0; b.onclick=_backup; await _partilhar(f); };
+      toast('Toque outra vez no botão para escolher o Drive.'); return true; }
+    console.warn('share',e); return false;
+  }
+}
+async function _backup(){ await flush(); const L=UI.proc?FICHAS.filter(f=>f.processo===UI.proc):FICHAS;
   if(!L.length){toast('Nada para exportar.');return;}
   const nome=`INFRAPAT_${(UI.proc||'todos').replace(/[^\w.-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
   const txt=JSON.stringify({app:'INFRAPAT',versao:VERSAO,fichas:L});
-  // 1) telemóvel: partilhar → Drive
-  if(_mobile&&navigator.share){ const f=_ficheiroPartilhavel(nome,txt);
-    if(f){ try{ await navigator.share({files:[f],title:nome}); toast('Backup enviado. No Drive, confirme a pasta e toque em Guardar.'); return; }
-      catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} /* outro erro → tenta abaixo */ } } }
-  // 2) computador: "Guardar como" (permite escolher a pasta do Drive)
+  // 1) computador: "Guardar como"
   if(window.showSaveFilePicker){
     try{ const h=await showSaveFilePicker({id:'infrapat-backup',suggestedName:nome,types:[{description:'Backup INFRAPAT',accept:{'application/json':['.json']}}]});
       const w=await h.createWritable(); await w.write(txt); await w.close(); toast('Backup guardado: '+h.name); return; }
     catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} }
   }
+  // 2) telemóvel: partilhar → Drive
+  if(navigator.share){ const f=_ficheiroPartilhavel(nome,txt); if(f && await _partilhar(f)) return; }
   // 3) recurso: descarregar
-  descarregar(nome,txt,'application/json'); toast('Backup descarregado para Transferências.'); };
+  descarregar(nome,txt,'application/json'); toast('Backup descarregado para Transferências.'); }
+$('#bBackup').onclick=_backup;
 $('#bRestore').onclick=()=>{ $('#fileRestore').value=''; $('#fileRestore').click(); };
 $('#fileRestore').addEventListener('change',async e=>{
   const file=e.target.files[0]; if(!file) return;
@@ -616,7 +627,12 @@ function mostrarInst(){
   else if(iOS){ $('#instTxt').innerHTML='No Safari: toque em <b>Partilhar</b> e depois em <b>Adicionar ao ecrã principal</b>.'; $('#bInstalar').classList.add('hide'); box.classList.remove('hide'); }
   else box.classList.add('hide');
 }
-if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  // procura logo versão nova; quando o service worker novo assume, recarrega uma vez
+  const _tinhaSW=!!navigator.serviceWorker.controller; let _recarregou=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_tinhaSW&&!_recarregou){ _recarregou=true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(e=>console.warn('SW',e));
+}
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pedidoInstalar=e; mostrarInst(); });
 window.addEventListener('appinstalled',()=>{ pedidoInstalar=null; $('#instBox').classList.add('hide'); toast('INFRAPAT instalada — use o ícone no ecrã inicial.'); });
 $('#bInstalar').onclick=async()=>{ if(!pedidoInstalar) return; pedidoInstalar.prompt(); const r=await pedidoInstalar.userChoice; pedidoInstalar=null; if(r.outcome!=='accepted') toast('Pode instalar mais tarde pelo menu ⋮ → Instalar aplicação.'); mostrarInst(); };
