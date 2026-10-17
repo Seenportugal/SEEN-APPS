@@ -267,18 +267,19 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 <div id="print"></div>
 <input type="file" id="fileVisit" accept=".html,.htm,.json,text/html,application/json" multiple class="hide">
 <input type="file" id="fileRestore" accept=".json,application/json" class="hide">
-<input type="file" id="fileFoto" accept="image/*" class="hide">
+<input type="file" id="fileFoto" accept="image/*" multiple class="hide">
+<input type="file" id="fileFotoCam" accept="image/*" capture="environment" class="hide">
 
 <script>
 /* ============================================================
-   INFRAPAT · v1.4 · Registo de patologias no interior das frações
+   INFRAPAT · v1.5 · Registo de patologias no interior das frações
    Uma ficha por fração: {id, processo, edificio, morada, fracao, andar, tipo,
    proprietario, presente, dia, hora, marc, pats:{k:{locs:{},locOutro,obs,fotos[]}}, patOutro,
    ensaios:{k:true}, ensaioOutro, obs, criado, atualizado}
    Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
    Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
    ============================================================ */
-const VERSAO='1.4';
+const VERSAO='1.5';
 const PATS=[
   ['inf_ext','Infiltrações com origem no exterior'],
   ['condens','Condensações superficiais / fungos / bolores'],
@@ -477,7 +478,7 @@ document.querySelectorAll('[data-seg]').forEach(s=>s.addEventListener('click',e=
 }));
 $('#bAgora').onclick=()=>{ const n=agora(); cur.hora=n.h; $('[data-f="hora"]').value=n.h; if(!cur.dia){cur.dia=n.d; $('[data-f="dia"]').value=n.d;} agendar(); };
 
-function htmlFotos(k){ const p=cur.pats[k]; return p.fotos.map((f,i)=>`<div class="foto"><img src="${f}" data-zoom alt=""><button type="button" data-delfoto="${k}" data-i="${i}">✕</button></div>`).join('')+`<div class="addfoto" data-addfoto="${k}"><b>＋</b>Foto</div>`; }
+function htmlFotos(k){ const p=cur.pats[k]; return p.fotos.map((f,i)=>`<div class="foto"><img src="${f}" data-zoom alt=""><button type="button" data-delfoto="${k}" data-i="${i}">✕</button></div>`).join('')+`<div class="addfoto" data-addfoto="${k}" data-cam="1"><b>📷</b>Câmara</div><div class="addfoto" data-addfoto="${k}"><b>🖼</b>Galeria</div>`; }
 function renderPats(){
   $('#patBox').innerHTML=PATS.map(([k,n])=>{ const p=cur.pats[k], on=!!p;
     return `<div class="pat${on?' on':''}" data-pat="${k}"><label><input type="checkbox" data-pchk="${k}"${on?' checked':''}><span>${n}</span><i data-pinfo="${k}">${on&&p.fotos.length?p.fotos.length+' foto(s)':''}</i></label>
@@ -517,7 +518,7 @@ $('#vFicha').addEventListener('change',e=>{
 $('#vFicha').addEventListener('click',e=>{
   const t=e.target;
   if(t.matches('[data-zoom]')){ $('#zoom img').src=t.src; $('#zoom').style.display='flex'; return; }
-  const a=t.closest('[data-addfoto]'); if(a){ fotoK=a.dataset.addfoto; $('#fileFoto').value=''; $('#fileFoto').click(); return; }
+  const a=t.closest('[data-addfoto]'); if(a){ fotoK=a.dataset.addfoto; const inp=$(a.dataset.cam?'#fileFotoCam':'#fileFoto'); inp.value=''; inp.click(); return; }
   const df=t.closest('[data-delfoto]'); if(df){ if(!confirm('Remover esta foto?')) return; cur.pats[df.dataset.delfoto].fotos.splice(+df.dataset.i,1); atualizarFotos(df.dataset.delfoto); agendar(); }
 });
 $('#zoom').addEventListener('click',()=>$('#zoom').style.display='none');
@@ -530,10 +531,13 @@ function comprimir(file){ return new Promise((res,rej)=>{ const img=new Image(),
   img.onerror=rej; img.src=url; }); }
 function atualizarFotos(k){ const box=document.querySelector(`[data-fotos="${k}"]`); if(box) box.innerHTML=htmlFotos(k);
   const i=document.querySelector(`[data-pinfo="${k}"]`); if(i) i.textContent=cur.pats[k].fotos.length?cur.pats[k].fotos.length+' foto(s)':''; }
-$('#fileFoto').addEventListener('change',async e=>{
-  const file=e.target.files[0]; if(!file||!cur||!fotoK||!cur.pats[fotoK]) return;
-  try{ cur.pats[fotoK].fotos.push(await comprimir(file)); atualizarFotos(fotoK); agendar(); }catch(err){ alert('Não foi possível ler a imagem.'); }
-});
+async function juntarFotos(e){
+  const files=[...e.target.files]; if(!files.length||!cur||!fotoK||!cur.pats[fotoK]) return;
+  for(const file of files){ try{ cur.pats[fotoK].fotos.push(await comprimir(file)); }catch(err){ alert('Não foi possível ler a imagem.'); } }
+  atualizarFotos(fotoK); agendar();
+}
+$('#fileFoto').addEventListener('change',juntarFotos);
+$('#fileFotoCam').addEventListener('change',juntarFotos);
 
 function autoH(ta){ if(!ta) return; ta.style.height='auto'; ta.style.height=Math.max(80,ta.scrollHeight+2)+'px'; }
 
