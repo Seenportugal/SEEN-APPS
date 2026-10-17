@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>INFRAPAT · SEEN</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7b2d26">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="INFRAPAT">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#f5f3f2; --card:#fff; --ink:#22201f; --muted:#76706c; --line:#e3ddd9;
+  --pri:#7b2d26; --pri2:#9c3d33; --soft:#f6ebe9; --ok:#1f8a4c; --okbg:#e3f5ea; --ko:#c0392b; --kobg:#fbe7e5; --wait:#b7791f; --waitbg:#fdf3e1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px}
+header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.hrow{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;letter-spacing:2px;flex:1;min-width:150px}
+header h1 small{font-weight:400;opacity:.8;margin-left:6px;font-size:12px;letter-spacing:0}
+#saveInd{font-size:12px;opacity:.85}
+button{font:inherit;border:0;border-radius:8px;padding:9px 13px;cursor:pointer;background:var(--pri2);color:#fff}
+button.sec{background:#fff;color:var(--pri);border:1px solid var(--line)}
+button.hdr{background:rgba(255,255,255,.14);color:#fff;padding:7px 11px;font-size:13px;border:1px solid rgba(255,255,255,.25)}
+button.del{background:#fff;color:var(--ko);border:1px solid #f0c9c9}
+button.small{padding:6px 10px;font-size:13px}
+main{max-width:980px;margin:0 auto;padding:14px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--pri);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h2 em{font-style:normal;background:var(--soft);border-radius:10px;padding:1px 8px;font-size:12px;letter-spacing:0}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 2fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri2);border-color:transparent}
+input.imp{background:#faf7f6}
+.lab-imp{font-size:10px;color:var(--pri2);margin-left:4px}
+.seg{display:flex;gap:4px}
+.seg button{flex:1;background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 4px;font-weight:600}
+.seg button.on{background:var(--pri2);border-color:var(--pri2);color:#fff}
+.seg button.s.on{background:var(--ok);border-color:var(--ok)}
+.seg button.n.on{background:var(--ko);border-color:var(--ko)}
+.hora{display:flex;gap:6px}
+.hora button{white-space:nowrap}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar select,.bar input{width:auto;flex:1;min-width:150px}
+.proc{margin-bottom:16px}
+.proc-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 8px}
+.proc-h b{color:var(--pri);font-size:15px}
+.proc-h span{color:var(--muted);font-size:13px;flex:1}
+.fr{display:grid;grid-template-columns:80px 1fr auto;gap:4px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--wait);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.fr:hover{background:#fdfafa}
+.fr.sim{border-left-color:var(--ok)} .fr.nao{border-left-color:var(--ko)}
+.fr .f{font-weight:700;font-size:16px;color:var(--pri)}
+.fr .f small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.fr .p{font-size:13px}
+.fr .p small{display:block;color:var(--muted);font-size:12px}
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--pri);white-space:nowrap;display:inline-block;margin:2px 0}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.ko{background:var(--kobg);color:var(--ko)} .pill.w{background:var(--waitbg);color:var(--wait)}
+.pat{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+.pat.on{border-color:var(--pri2);background:#fffdfc}
+.pat>label{display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;font-size:14px;color:var(--ink);cursor:pointer}
+.pat>label input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--pri2)}
+.pat>label span{flex:1}
+.pat>label i{font-style:normal;font-size:12px;color:var(--muted)}
+.pat .det{display:none;padding:0 12px 12px}
+.pat.on .det{display:block}
+.ens{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ens label{display:flex;align-items:center;gap:8px;margin:0;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;color:var(--ink);cursor:pointer;background:#fff}
+.ens label.on{border-color:var(--pri2);background:var(--soft)}
+.ens input{width:18px;height:18px;accent-color:var(--pri2)}
+.obsw textarea{resize:vertical;min-height:80px;line-height:1.45}
+.locs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.locs label{display:flex;align-items:center;gap:6px;margin:0;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;color:var(--ink);cursor:pointer;background:#fff}
+.locs label.on{border-color:var(--pri2);background:var(--soft);font-weight:600}
+.locs input{width:16px;height:16px;accent-color:var(--pri2);flex:0 0 auto}
+.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.foto{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.foto img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.foto button{position:absolute;top:3px;right:3px;padding:2px 7px;font-size:13px;background:rgba(0,0,0,.6)}
+.addfoto{width:100px;height:100px;border:2px dashed var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:12px;cursor:pointer;background:#fafafa}
+.addfoto b{font-size:24px;line-height:1;color:var(--pri2)}
+.nav{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.nav .t{flex:1;text-align:center;font-weight:700;color:var(--pri)}
+.nav .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.row-btn{display:flex;gap:8px;flex-wrap:wrap}
+.nota{font-size:12px;color:var(--muted);margin-top:8px}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+.hide{display:none!important}
+#zoom{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:50}
+#zoom img{max-width:96vw;max-height:94vh}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#22201f;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw}
+#toast.on{opacity:.95}
+dialog{border:none;border-radius:12px;padding:0;width:min(520px,94vw);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{padding:16px}
+dialog h3{margin:0 0 12px;color:var(--pri)}
+.dlgacts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+#print{display:none}
+@media (max-width:640px){
+  .g2,.g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .g3>:nth-child(2){grid-column:1/-1;order:-1}
+  .ens{grid-template-columns:1fr}
+  .locs{grid-template-columns:1fr 1fr}
+  .fr{grid-template-columns:64px 1fr}
+  .fr .st{grid-column:1/-1}
+  header h1 small{display:none}
+  .hrow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 10px}
+  .hrow::-webkit-scrollbar{display:none}
+  header h1{min-width:auto;flex:0 0 auto;font-size:16px}
+  .hrow button{flex:0 0 auto}
+  #saveInd{flex:0 0 auto}
+  input,select,textarea{font-size:16px}
+  main{padding:10px 8px 80px}
+  .card{padding:12px 10px}
+  .proc-h span{flex:1 1 100%;order:1}
+  .proc-h button{order:2}
+  .nav{position:sticky;top:52px;z-index:5;background:var(--bg);padding:6px 0}
+  .nav button{padding:10px 16px;font-size:16px}
+  .pat>label{padding:12px 10px}
+  .foto,.addfoto{width:88px;height:88px}
+}
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  body{background:#fff;font-size:10pt}
+  header,main,#zoom,#toast,dialog{display:none!important}
+  #print{display:block}
+  #print .ficha{break-after:page}
+  #print .ficha:last-child{break-after:auto}
+  #print .lh{display:flex;justify-content:space-between;border-bottom:2px solid #7b2d26;padding-bottom:6px;margin-bottom:10px}
+  #print .lh div{font-size:9pt;color:#444}
+  #print h1{font-size:14pt;margin:0 0 8px;color:#7b2d26}
+  #print h3{font-size:10.5pt;margin:12px 0 5px;color:#7b2d26;text-transform:uppercase}
+  #print table{width:100%;border-collapse:collapse;font-size:9pt}
+  #print th,#print td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top}
+  #print th{background:#f3e7e5;width:22%}
+  #print td.o{white-space:pre-wrap}
+  #print .pt th{width:auto}
+  #print .pf{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+  #print .pf figure{margin:0;break-inside:avoid}
+  #print .pf img{display:block;width:100%;height:48mm;object-fit:cover;border:1px solid #ccc}
+  #print .pf figcaption{font-size:7.5pt;color:#555}
+  #print tr{break-inside:avoid}
+  #print .rod{font-size:8pt;color:#666;margin-top:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <h1>INFRAPAT <small>Patologias no interior das frações · SEEN</small></h1>
+    <span id="saveInd"></span>
+    <button class="hdr" id="bLista">☰ Lista</button>
+    <button class="hdr" id="bImportVisit" title="Importar uma ficha VISIT (.html) ou backup VISIT (.json) — cria uma ficha por fração">📥 Importar VISIT</button>
+    <button class="hdr" id="bNovaFr" title="Criar ficha de uma fração que não veio da VISIT">＋ Fração</button>
+    <button class="hdr" id="bBackup">⬇ Backup</button>
+    <button class="hdr" id="bRestore">⬆ Restaurar</button>
+    <button class="hdr hide" id="bInstalar" title="Instalar a INFRAPAT neste aparelho (ícone no ecrã inicial)">⬇ Instalar app</button>
+    <button class="hdr" id="bPainel" onclick="history.back()">⟵ Painel</button>
+  </div>
+</header>
+
+<main>
+  <section id="vLista">
+    <div class="bar">
+      <select id="selProc"></select>
+      <input type="search" id="q" placeholder="Pesquisar fração, proprietário…">
+    </div>
+    <div id="listaBox"></div>
+  </section>
+
+  <section id="vFicha" class="hide">
+    <div class="nav">
+      <button class="sec small" id="bPrev">◀</button>
+      <div class="t" id="navTit"></div>
+      <button class="sec small" id="bNext">▶</button>
+    </div>
+    <div class="card">
+      <h2>Identificação</h2>
+      <div class="grid g3">
+        <div><label>Processo n.º<span class="lab-imp">VISIT</span></label><input class="imp" data-f="processo"></div>
+        <div><label>Edifício<span class="lab-imp">VISIT</span></label><input class="imp" data-f="edificio"></div>
+        <div><label>Fração<span class="lab-imp">VISIT</span></label><input class="imp" data-f="fracao"></div>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <div><label>Localização da fração<span class="lab-imp">VISIT</span></label><input class="imp" data-f="andar" placeholder="ex. 1.º Esq., R/C, cave -1…"></div>
+        <div><label>Tipo</label><div class="seg" data-seg="tipo"><button type="button" data-v="Habitação">Habitação</button><button type="button" data-v="Loja">Loja</button><button type="button" data-v="Garagem">Garagem</button></div></div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div><label>Nome do proprietário<span class="lab-imp">VISIT</span></label><input class="imp" data-f="proprietario"></div>
+      </div>
+      <div class="grid g4" style="margin-top:10px">
+        <div><label>Presente</label><div class="seg" data-seg="presente"><button type="button" class="s" data-v="sim">SIM</button><button type="button" class="n" data-v="nao">NÃO</button></div></div>
+        <div><label>Dia da visita<span class="lab-imp">VISIT</span></label><input class="imp" type="date" data-f="dia"></div>
+        <div style="grid-column:span 2"><label>Hora</label><div class="hora"><input type="time" data-f="hora"><button type="button" class="sec" id="bAgora">⏱ Agora</button></div></div>
+      </div>
+      <div class="nota">Os campos marcados VISIT são preenchidos pela importação e podem ser corrigidos aqui.</div>
+    </div>
+
+    <div class="card">
+      <h2>Patologias observadas <em id="nPat">0</em></h2>
+      <div id="patBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>Ensaios efetuados</h2>
+      <div class="ens" id="ensBox"></div>
+      <div id="ensOutroW" class="hide" style="margin-top:8px"><label>Outro ensaio — qual?</label><input data-f="ensaioOutro" placeholder="descrever o ensaio"></div>
+    </div>
+
+    <div class="card">
+      <h2>Observações</h2>
+      <div class="obsw"><textarea id="ta_obs" data-f="obs" rows="4" placeholder="Observações gerais da fração"></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="row-btn">
+        <button class="sec" id="bPrintFicha">🖨 Imprimir ficha</button>
+        <button class="sec" id="bPrintProc">🖨 Imprimir todas as fichas do processo</button>
+        <button class="del" id="bDelFicha">Eliminar ficha</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlgFr">
+  <form method="dialog" id="frmFr">
+    <h3>Nova fração</h3>
+    <div class="grid g2">
+      <div><label>Processo n.º</label><input name="processo" required></div>
+      <div><label>Edifício</label><input name="edificio"></div>
+      <div><label>Fração</label><input name="fracao" required placeholder="ex. B"></div>
+      <div><label>Dia da visita</label><input name="dia" type="date"></div>
+    </div>
+    <div class="dlgacts"><button class="sec" value="cancel" formnovalidate>Cancelar</button><button value="ok">Criar ficha</button></div>
+  </form>
+</dialog>
+
+<div id="zoom"><img alt=""></div>
+<div id="toast"></div>
+<div id="print"></div>
+<input type="file" id="fileVisit" accept=".html,.htm,.json,text/html,application/json" multiple class="hide">
+<input type="file" id="fileRestore" accept=".json,application/json" class="hide">
+<input type="file" id="fileFoto" accept="image/*" class="hide">
+
+<script>
+/* ============================================================
+   INFRAPAT · v1.3 · Registo de patologias no interior das frações
+   Uma ficha por fração: {id, processo, edificio, morada, fracao, andar, tipo,
+   proprietario, presente, dia, hora, marc, pats:{k:{locs:{},locOutro,obs,fotos[]}}, patOutro,
+   ensaios:{k:true}, ensaioOutro, obs, criado, atualizado}
+   Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
+   Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
+   ============================================================ */
+const VERSAO='1.3';
+const PATS=[
+  ['inf_ext','Infiltrações com origem no exterior'],
+  ['condens','Condensações superficiais / fungos / bolores'],
+  ['hum_asc','Humidade ascensional por capilaridade'],
+  ['fis_par','Fissuração em paredes'],
+  ['fis_tet','Fissuração em tetos'],
+  ['fis_pav','Fissuração em pavimentos'],
+  ['pinturas','Destacamento / degradação de pinturas'],
+  ['ceramicos','Destacamento / fissuração de revestimentos cerâmicos'],
+  ['tet_falsos','Degradação de tetos falsos'],
+  ['vaos','Anomalias em vãos envidraçados'],
+  ['portas','Anomalias em portas interiores / exteriores'],
+  ['agua_fria','Anomalias na rede de água fria'],
+  ['agua_quente','Anomalias na rede de água quente'],
+  ['residuais','Anomalias na rede de águas residuais / drenagem'],
+  ['gas','Anomalias na rede de gás'],
+  ['eletrica','Anomalias na instalação elétrica'],
+  ['pavimentos','Degradação de pavimentos'],
+  ['ruidos','Ruídos / vibrações'],
+  ['odores','Odores persistentes'],
+  ['outro','Outro']
+];
+const LOCS=[['sala','Sala'],['quartos','Quartos'],['cozinha','Cozinha'],['wc','WC'],['varanda','Varanda'],['terraco','Terraço'],['marquise','Marquise'],['garagem','Garagem'],['arrumos','Arrumos'],['loja','Loja'],['outro','Outro']];
+const locTxt=p=>LOCS.filter(([k])=>p.locs[k]).map(([k,n])=>k==='outro'?('Outro'+(p.locOutro?': '+p.locOutro:'')):n).join(', ');
+const ENS=[['visual','Inspeção visual'],['higro','Higrometria'],['termo','Termografia'],['fissuras','Medição de fissuras'],['inclin','Verificação de inclinações'],['estanq','Ensaio de estanquidade'],['outro','Outro']];
+const patNome=(f,k)=>k==='outro'?('Outro'+(f.patOutro?': '+f.patOutro:'')):(PATS.find(p=>p[0]===k)||[,k])[1];
+const ensNome=(f,k)=>k==='outro'?('Outro'+(f.ensaioOutro?': '+f.ensaioOutro:'')):(ENS.find(p=>p[0]===k)||[,k])[1];
+
+/* ---------- utilitários ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pad=n=>String(n).padStart(2,'0');
+const agora=()=>{const d=new Date();return {d:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,h:`${pad(d.getHours())}:${pad(d.getMinutes())}`};};
+const dataPT=d=>d?d.split('-').reverse().join('/'):'';
+const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+const frLetra=f=>String(f||'').split(/\s+[–-]\s+/)[0].trim();
+const frLoc=f=>String(f||'').split(/\s+[–-]\s+/).slice(1).join(' – ').trim();
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),3500);}
+
+/* ---------- IndexedDB ---------- */
+const DB={
+  db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open('SEEN_INFRAPAT',1);
+    r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('fichas'))d.createObjectStore('fichas',{keyPath:'id'});};
+    r.onsuccess=e=>{this.db=e.target.result;res();};r.onerror=e=>rej(e.target.error);});},
+  st(m){return this.db.transaction('fichas',m).objectStore('fichas');},
+  all(){return new Promise(res=>{const q=this.st('readonly').getAll();q.onsuccess=()=>res(q.result||[]);});},
+  put(o){return new Promise((res,rej)=>{const q=this.st('readwrite').put(o);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});},
+  del(id){return new Promise(res=>{const q=this.st('readwrite').delete(id);q.onsuccess=()=>res();});}
+};
+let FICHAS=[], cur=null, saveT=null, UI={proc:''};
+try{Object.assign(UI,JSON.parse(localStorage.getItem('infrapat_ui')||'{}'));}catch(e){}
+const saveUI=()=>{try{localStorage.setItem('infrapat_ui',JSON.stringify(UI));}catch(e){}};
+
+function normFicha(f){
+  const n=Object.assign({id:uid('fr'),processo:'',edificio:'',morada:'',fracao:'',andar:'',tipo:'',proprietario:'',presente:'',dia:'',hora:'',marc:'',
+    pats:{},patOutro:'',ensaios:{},ensaioOutro:'',obs:'',criado:new Date().toISOString(),atualizado:new Date().toISOString()},f||{});
+  if(!n.pats||typeof n.pats!=='object') n.pats={};
+  for(const k in n.pats){ const p=n.pats[k]; if(!p){delete n.pats[k];continue;} p.obs=p.obs||''; p.fotos=Array.isArray(p.fotos)?p.fotos:[]; if(!p.locs||typeof p.locs!=='object') p.locs={}; p.locOutro=p.locOutro||''; }
+  if(!n.ensaios||typeof n.ensaios!=='object') n.ensaios={};
+  return n;
+}
+function agendar(){ $('#saveInd').textContent='a gravar…'; clearTimeout(saveT); saveT=setTimeout(gravar,500); }
+async function gravar(){
+  saveT=null; if(!cur) return; cur.atualizado=new Date().toISOString();
+  try{ await DB.put(cur); $('#saveInd').textContent='✓ gravado'; }
+  catch(e){ $('#saveInd').textContent='⚠ erro'; alert('Erro ao gravar: '+(e.message||e)); }
+}
+async function flush(){ if(saveT){ clearTimeout(saveT); await gravar(); } }
+
+/* ---------- importação VISIT ---------- */
+function tipoDe(fr){ const s=norm(fr); if(/garag|estacion|box|lugar/.test(s)) return 'Garagem'; if(/loja|comerc|escrit/.test(s)) return 'Loja'; if(/habita|apart|t[0-9]\b|dto|esq|frente/.test(s)) return 'Habitação'; return ''; }
+function lerVisit(txt){
+  let d;
+  if(/^\s*</.test(txt)){ const el=new DOMParser().parseFromString(txt,'text/html').getElementById('visit-data'); if(!el) throw new Error('não é uma ficha VISIT'); d=JSON.parse(el.textContent); }
+  else d=JSON.parse(txt);
+  return d;
+}
+async function importarVisit(files){
+  let novas=0, act=0, ultProc='';
+  for(const file of files){
+    let d; try{ d=lerVisit(await file.text()); }catch(e){ toast(file.name+': '+e.message); continue; }
+    if(d.app==='INFRAPAT'){ toast(file.name+' é um backup INFRAPAT — usar “Restaurar”.'); continue; }
+    if(!Array.isArray(d.marcacoes)){ toast(file.name+': formato não reconhecido'); continue; }
+    for(const m of d.marcacoes){
+      if(!m.processo||!m.fracao) continue;
+      const k=norm(m.processo)+'|'+norm(frLetra(m.fracao));
+      let f=FICHAS.find(x=>norm(x.processo)+'|'+norm(frLetra(x.fracao))===k);
+      const imp={processo:m.processo, edificio:m.edificio||'', morada:m.morada||'', fracao:m.fracao, proprietario:m.proprietario||'',
+                 dia:m.v_data||m.data||'', marc:(m.data||'')+' '+(m.hora||'')};
+      if(m.presente==='SIM') imp.presente='sim'; else if(m.presente==='NÃO') imp.presente='nao';
+      if(f){ Object.assign(f,imp); if(!f.andar) f.andar=frLoc(m.fracao); act++; }
+      else{ f=normFicha({...imp, andar:frLoc(m.fracao), tipo:tipoDe(m.fracao)}); FICHAS.push(f); novas++; }
+      f.atualizado=new Date().toISOString(); await DB.put(f); ultProc=m.processo;
+    }
+  }
+  if(novas||act){ UI.proc=ultProc; saveUI(); toast(`${novas} ficha(s) criada(s)${act?`, ${act} atualizada(s)`:''}.`); }
+  mostrarLista();
+}
+$('#bImportVisit').onclick=()=>{ $('#fileVisit').value=''; $('#fileVisit').click(); };
+$('#fileVisit').addEventListener('change',e=>importarVisit([...e.target.files]));
+
+/* ---------- backup ---------- */
+function descarregar(nome,conteudo,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([conteudo],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
+$('#bBackup').onclick=async()=>{ await flush(); const L=UI.proc?FICHAS.filter(f=>f.processo===UI.proc):FICHAS;
+  if(!L.length){toast('Nada para exportar.');return;}
+  descarregar(`INFRAPAT_${(UI.proc||'todos').replace(/[^\w.-]+/g,'_')}_${agora().d}.json`,JSON.stringify({app:'INFRAPAT',versao:VERSAO,fichas:L}),'application/json'); };
+$('#bRestore').onclick=()=>{ $('#fileRestore').value=''; $('#fileRestore').click(); };
+$('#fileRestore').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{ const d=JSON.parse(await file.text()); if(d.app!=='INFRAPAT'||!Array.isArray(d.fichas)) throw new Error('não é um backup INFRAPAT');
+    let n=0,s=0;
+    for(const x of d.fichas){ const f=normFicha(x), ex=FICHAS.find(o=>o.id===f.id);
+      if(ex){ if((ex.atualizado||'')>(f.atualizado||'') && !confirm(`A ficha ${f.processo} · ${f.fracao} deste computador é mais recente. Substituir pela do backup?`)){s++;continue;} FICHAS.splice(FICHAS.indexOf(ex),1); }
+      FICHAS.push(f); await DB.put(f); n++; }
+    toast(`${n} ficha(s) restaurada(s)${s?`, ${s} mantida(s)`:''}.`); mostrarLista();
+  }catch(err){ alert('Erro: '+err.message); }
+});
+
+/* ---------- lista ---------- */
+const sortF=(a,b)=>(a.marc||'').localeCompare(b.marc||'')||String(a.fracao).localeCompare(String(b.fracao),'pt',{numeric:true});
+const nPats=f=>Object.keys(f.pats).length;
+async function mostrarLista(){
+  await flush(); cur=null;
+  $('#vFicha').classList.add('hide'); $('#vLista').classList.remove('hide'); $('#saveInd').textContent='';
+  const procs=[...new Map(FICHAS.map(f=>[f.processo,f])).values()].sort((a,b)=>String(b.processo).localeCompare(String(a.processo),'pt',{numeric:true}));
+  if(UI.proc&&!procs.some(p=>p.processo===UI.proc)) UI.proc='';
+  $('#selProc').innerHTML=`<option value="">Todos os processos</option>`+procs.map(p=>`<option value="${esc(p.processo)}"${p.processo===UI.proc?' selected':''}>${esc(p.processo)} · ${esc(p.edificio)}</option>`).join('');
+  if(!FICHAS.length){ $('#listaBox').innerHTML=`<div class="card empty"><b>Sem fichas</b>Importe a ficha da visita gerada pela app VISIT (.html) — é criada uma ficha por fração.<br><br><button id="bE1">📥 Importar VISIT</button> <button class="sec" id="bE2">＋ Fração manual</button></div>`;
+    $('#bE1').onclick=()=>$('#bImportVisit').click(); $('#bE2').onclick=()=>$('#bNovaFr').click(); return; }
+  const q=norm($('#q').value);
+  const L=FICHAS.filter(f=>(!UI.proc||f.processo===UI.proc)&&(!q||norm([f.fracao,f.andar,f.proprietario,f.tipo].join(' ')).includes(q)));
+  const G={}; L.forEach(f=>(G[f.processo]=G[f.processo]||[]).push(f));
+  let h='';
+  for(const p of procs.map(x=>x.processo).filter(p=>G[p])){
+    const fs=G[p].sort(sortF), ed=fs[0].edificio, feitas=fs.filter(f=>nPats(f)||f.obs||Object.keys(f.ensaios).length).length;
+    h+=`<div class="proc"><div class="proc-h"><b>${esc(p)}</b><span>${esc(ed)} · ${fs.length} frações · ${feitas} com registo</span>
+      <button class="sec small" data-pp="${esc(p)}">🖨 Imprimir</button><button class="sec small" data-csv="${esc(p)}">⬇ CSV</button><button class="del small" data-delp="${esc(p)}">Eliminar</button></div>`;
+    h+=fs.map(f=>{ const n=nPats(f), cls=f.presente==='sim'?'sim':f.presente==='nao'?'nao':'';
+      return `<div class="fr ${cls}" data-id="${f.id}"><div class="f">${esc(frLetra(f.fracao))}<small>${esc([f.andar,f.tipo].filter((x,i,A)=>x&&(i===0||norm(x)!==norm(A[0]))).join(' · '))}</small></div>
+        <div class="p">${esc(f.proprietario)||'<span style="color:var(--muted)">—</span>'}<small>${dataPT(f.dia)}${f.hora?' · '+esc(f.hora):''}</small></div>
+        <div class="st">${f.presente==='sim'?'<span class="pill ok">Presente</span>':f.presente==='nao'?'<span class="pill ko">Ausente</span>':'<span class="pill w">Por registar</span>'}
+        ${n?`<span class="pill">${n} patologia${n>1?'s':''}</span>`:''}</div></div>`; }).join('');
+    h+='</div>';
+  }
+  $('#listaBox').innerHTML=h||'<div class="card empty">Nenhuma fração corresponde à pesquisa.</div>';
+}
+$('#selProc').addEventListener('change',e=>{UI.proc=e.target.value;saveUI();mostrarLista();});
+$('#q').addEventListener('input',()=>mostrarLista());
+$('#listaBox').addEventListener('click',async e=>{
+  const b=e.target.closest('button');
+  if(b&&b.dataset.pp){ imprimir(FICHAS.filter(f=>f.processo===b.dataset.pp).sort(sortF)); return; }
+  if(b&&b.dataset.csv){ exportCSV(b.dataset.csv); return; }
+  if(b&&b.dataset.delp){ const L=FICHAS.filter(f=>f.processo===b.dataset.delp);
+    if(!confirm(`Eliminar as ${L.length} fichas do processo ${b.dataset.delp}? (Faça antes um backup, se necessário.)`)) return;
+    for(const f of L){ await DB.del(f.id); FICHAS.splice(FICHAS.indexOf(f),1); } mostrarLista(); return; }
+  const r=e.target.closest('.fr'); if(r) abrir(FICHAS.find(f=>f.id===r.dataset.id));
+});
+
+/* ---------- nova fração manual ---------- */
+$('#bNovaFr').onclick=()=>{ const f=$('#frmFr'); f.reset(); const ref=cur||FICHAS.find(x=>x.processo===UI.proc);
+  if(ref){ f.elements.processo.value=ref.processo; f.elements.edificio.value=ref.edificio; f.elements.dia.value=ref.dia||agora().d; } else f.elements.dia.value=agora().d;
+  $('#dlgFr').showModal(); f.elements[ref?'fracao':'processo'].focus(); };
+$('#dlgFr').addEventListener('close',async()=>{
+  if($('#dlgFr').returnValue!=='ok') return;
+  const e=$('#frmFr').elements, d={processo:e.processo.value.trim(),edificio:e.edificio.value.trim(),fracao:e.fracao.value.trim(),dia:e.dia.value};
+  if(!d.processo||!d.fracao) return;
+  const ex=FICHAS.find(x=>norm(x.processo)===norm(d.processo)&&norm(frLetra(x.fracao))===norm(frLetra(d.fracao)));
+  if(ex){ toast('Já existe ficha para esta fração.'); abrir(ex); return; }
+  const f=normFicha({...d, marc:'~ '+d.fracao, andar:frLoc(d.fracao), tipo:tipoDe(d.fracao)}); FICHAS.push(f); await DB.put(f); UI.proc=f.processo; saveUI(); abrir(f);
+});
+
+/* ---------- ficha ---------- */
+const irmas=()=>FICHAS.filter(f=>f.processo===cur.processo).sort(sortF);
+async function abrir(f){
+  await flush(); if(!f) return; cur=f;
+  $('#vLista').classList.add('hide'); $('#vFicha').classList.remove('hide'); $('#saveInd').textContent='';
+  document.querySelectorAll('#vFicha [data-f]').forEach(el=>{ el.value=cur[el.dataset.f]??''; });
+  renderSeg(); renderPats(); renderEns(); renderNav(); autoH($('#ta_obs')); window.scrollTo(0,0);
+}
+function renderNav(){
+  const L=irmas(), i=L.indexOf(cur);
+  $('#navTit').innerHTML=`Fração ${esc(frLetra(cur.fracao))}<small>${i+1} de ${L.length} · ${esc(cur.processo)}</small>`;
+  $('#bPrev').disabled=i<=0; $('#bNext').disabled=i>=L.length-1;
+  $('#bPrev').style.opacity=i<=0?.4:1; $('#bNext').style.opacity=i>=L.length-1?.4:1;
+}
+$('#bPrev').onclick=()=>{ const L=irmas(), i=L.indexOf(cur); if(i>0) abrir(L[i-1]); };
+$('#bNext').onclick=()=>{ const L=irmas(), i=L.indexOf(cur); if(i<L.length-1) abrir(L[i+1]); };
+function renderSeg(){ document.querySelectorAll('[data-seg]').forEach(s=>s.querySelectorAll('button').forEach(b=>b.classList.toggle('on',cur[s.dataset.seg]===b.dataset.v))); }
+document.querySelectorAll('[data-seg]').forEach(s=>s.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return; const k=s.dataset.seg;
+  cur[k]=cur[k]===b.dataset.v?'':b.dataset.v;
+  if(k==='presente'&&cur[k]&&!cur.hora){ cur.hora=agora().h; $('[data-f="hora"]').value=cur.hora; }
+  renderSeg(); agendar();
+}));
+$('#bAgora').onclick=()=>{ const n=agora(); cur.hora=n.h; $('[data-f="hora"]').value=n.h; if(!cur.dia){cur.dia=n.d; $('[data-f="dia"]').value=n.d;} agendar(); };
+
+function htmlFotos(k){ const p=cur.pats[k]; return p.fotos.map((f,i)=>`<div class="foto"><img src="${f}" data-zoom alt=""><button type="button" data-delfoto="${k}" data-i="${i}">✕</button></div>`).join('')+`<div class="addfoto" data-addfoto="${k}"><b>＋</b>Foto</div>`; }
+function renderPats(){
+  $('#patBox').innerHTML=PATS.map(([k,n])=>{ const p=cur.pats[k], on=!!p;
+    return `<div class="pat${on?' on':''}" data-pat="${k}"><label><input type="checkbox" data-pchk="${k}"${on?' checked':''}><span>${n}</span><i data-pinfo="${k}">${on&&p.fotos.length?p.fotos.length+' foto(s)':''}</i></label>
+      <div class="det">${on?`${k==='outro'?`<div style="margin-bottom:8px"><label>Qual?</label><input data-f="patOutro" value="${esc(cur.patOutro)}" placeholder="descrever a patologia"></div>`:''}
+        <label>Localização</label><div class="locs">${LOCS.map(([l,n])=>`<label class="${p.locs[l]?'on':''}"><input type="checkbox" data-loc="${k}" data-l="${l}"${p.locs[l]?' checked':''}>${n}</label>`).join('')}</div>
+        <div data-locoutro="${k}" class="${p.locs.outro?'':'hide'}" style="margin:-4px 0 10px"><label>Outra localização — qual?</label><input data-plo="${k}" value="${esc(p.locOutro)}" placeholder="ex. hall, escritório…"></div>
+        <label>Observações</label><div class="obsw"><textarea id="ta_${k}" data-pobs="${k}" rows="3" placeholder="Extensão, causa provável…">${esc(p.obs)}</textarea></div>
+        <div class="fotos" data-fotos="${k}">${htmlFotos(k)}</div>`:''}</div></div>`; }).join('');
+  $('#nPat').textContent=nPats(cur);
+  document.querySelectorAll('#patBox textarea').forEach(autoH);
+}
+function renderEns(){
+  $('#ensBox').innerHTML=ENS.map(([k,n])=>`<label class="${cur.ensaios[k]?'on':''}"><input type="checkbox" data-ens="${k}"${cur.ensaios[k]?' checked':''}>${n}</label>`).join('');
+  $('#ensOutroW').classList.toggle('hide',!cur.ensaios.outro);
+}
+$('#vFicha').addEventListener('input',e=>{
+  if(!cur) return; const t=e.target, d=t.dataset;
+  if(d.f){ cur[d.f]=t.value; if(d.f==='obs') autoH(t); if(['processo','fracao'].includes(d.f)) renderNav(); }
+  else if(d.pobs){ cur.pats[d.pobs].obs=t.value; autoH(t); }
+  else if(d.plo){ cur.pats[d.plo].locOutro=t.value; }
+  else return;
+  agendar();
+});
+$('#vFicha').addEventListener('change',e=>{
+  if(!cur) return; const d=e.target.dataset;
+  if(d.pchk){ const k=d.pchk;
+    if(e.target.checked) cur.pats[k]=cur.pats[k]||{locs:{},locOutro:'',obs:'',fotos:[]};
+    else{ const p=cur.pats[k]; if(p&&(p.obs||p.fotos.length||Object.keys(p.locs).length)&&!confirm('Desmarcar esta patologia apaga a localização, as observações e as fotos registadas nela. Continuar?')){ e.target.checked=true; return; } delete cur.pats[k]; }
+    renderPats(); agendar();
+    if(e.target.checked) setTimeout(()=>{ const ta=document.getElementById('ta_'+k); if(ta) ta.focus(); },30);
+  } else if(d.loc){ const p=cur.pats[d.loc]; if(e.target.checked) p.locs[d.l]=true; else delete p.locs[d.l];
+    e.target.closest('label').classList.toggle('on',e.target.checked);
+    if(d.l==='outro'){ document.querySelector(`[data-locoutro="${d.loc}"]`).classList.toggle('hide',!e.target.checked); if(e.target.checked) document.querySelector(`[data-plo="${d.loc}"]`).focus(); }
+    agendar();
+  } else if(d.ens){ if(e.target.checked) cur.ensaios[d.ens]=true; else delete cur.ensaios[d.ens]; renderEns(); agendar(); }
+});
+$('#vFicha').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.matches('[data-zoom]')){ $('#zoom img').src=t.src; $('#zoom').style.display='flex'; return; }
+  const a=t.closest('[data-addfoto]'); if(a){ fotoK=a.dataset.addfoto; $('#fileFoto').value=''; $('#fileFoto').click(); return; }
+  const df=t.closest('[data-delfoto]'); if(df){ if(!confirm('Remover esta foto?')) return; cur.pats[df.dataset.delfoto].fotos.splice(+df.dataset.i,1); atualizarFotos(df.dataset.delfoto); agendar(); }
+});
+$('#zoom').addEventListener('click',()=>$('#zoom').style.display='none');
+
+/* ---------- fotos ---------- */
+let fotoK=null;
+function comprimir(file){ return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
+  img.onload=()=>{ const s=Math.min(1,1600/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.75)); };
+  img.onerror=rej; img.src=url; }); }
+function atualizarFotos(k){ const box=document.querySelector(`[data-fotos="${k}"]`); if(box) box.innerHTML=htmlFotos(k);
+  const i=document.querySelector(`[data-pinfo="${k}"]`); if(i) i.textContent=cur.pats[k].fotos.length?cur.pats[k].fotos.length+' foto(s)':''; }
+$('#fileFoto').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file||!cur||!fotoK||!cur.pats[fotoK]) return;
+  try{ cur.pats[fotoK].fotos.push(await comprimir(file)); atualizarFotos(fotoK); agendar(); }catch(err){ alert('Não foi possível ler a imagem.'); }
+});
+
+function autoH(ta){ if(!ta) return; ta.style.height='auto'; ta.style.height=Math.max(80,ta.scrollHeight+2)+'px'; }
+
+/* ---------- impressão ---------- */
+function htmlFicha(f){
+  const pats=PATS.filter(([k])=>f.pats[k]), ens=ENS.filter(([k])=>f.ensaios[k]);
+  return `<div class="ficha"><div class="lh"><div><b style="color:#7b2d26;font-size:11pt">SEEN</b><br>Diagnóstico, Consultoria e Fiscalização</div><div style="text-align:right">Registo de patologias no interior das frações<br>${dataPT(f.dia)}</div></div>
+    <h1>Fração ${esc(frLetra(f.fracao))} · ${esc(f.edificio)}</h1>
+    <table><tr><th>Processo n.º</th><td>${esc(f.processo)}</td><th>Edifício</th><td>${esc(f.edificio)}</td></tr>
+      <tr><th>Fração</th><td>${esc(frLetra(f.fracao))}</td><th>Localização da fração</th><td>${esc(f.andar)}</td></tr>
+      <tr><th>Tipo</th><td>${esc(f.tipo)}</td><th>Presente</th><td><b>${f.presente==='sim'?'SIM':f.presente==='nao'?'NÃO':'—'}</b></td></tr>
+      <tr><th>Proprietário</th><td colspan="3">${esc(f.proprietario)}</td></tr>
+      <tr><th>Dia da visita</th><td>${dataPT(f.dia)}</td><th>Hora</th><td>${esc(f.hora)}</td></tr></table>
+    <h3>Patologias observadas (${pats.length})</h3>
+    ${pats.length?pats.map(([k])=>{ const p=f.pats[k]; return `<table class="pt" style="margin-bottom:6px"><tr><td style="background:#f3e7e5"><b>${esc(patNome(f,k))}</b>${locTxt(p)?` — <i>${esc(locTxt(p))}</i>`:''}</td></tr>${p.obs?`<tr><td class="o">${esc(p.obs)}</td></tr>`:''}</table>${p.fotos.length?`<div class="pf">${p.fotos.map((x,i)=>`<figure><img src="${x}" alt=""><figcaption>${esc(patNome(f,k))} · foto ${i+1}</figcaption></figure>`).join('')}</div>`:''}`; }).join(''):'<p>Sem patologias registadas.</p>'}
+    <h3>Ensaios efetuados</h3><p>${ens.length?ens.map(([k])=>esc(ensNome(f,k))).join(' · '):'—'}</p>
+    <h3>Observações</h3><table class="pt"><tr><td class="o">${esc(f.obs)||'—'}</td></tr></table>
+    <div class="rod">Processo ${esc(f.processo)} · ${esc(f.edificio)} — ficha gerada pela app INFRAPAT</div></div>`;
+}
+async function imprimir(L){
+  await flush(); if(!L.length) return;
+  $('#print').innerHTML=L.map(htmlFicha).join('');
+  const imgs=[...document.querySelectorAll('#print img')];
+  if(imgs.length) toast('A preparar '+imgs.length+' foto(s) para impressão…');
+  await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));
+  setTimeout(()=>window.print(),300);
+}
+$('#bPrintFicha').onclick=()=>imprimir([cur]);
+$('#bPrintProc').onclick=()=>imprimir(irmas());
+$('#bDelFicha').onclick=async()=>{ if(!confirm(`Eliminar a ficha da fração ${cur.fracao}?`)) return;
+  clearTimeout(saveT); saveT=null; await DB.del(cur.id); FICHAS.splice(FICHAS.indexOf(cur),1); cur=null; mostrarLista(); };
+
+/* ---------- CSV ---------- */
+function exportCSV(proc){
+  const L=FICHAS.filter(f=>f.processo===proc).sort(sortF), q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const H=['Processo n.º','Edifício','Fração','Localização da fração','Tipo','Proprietário','Presente','Dia da visita','Hora',...PATS.map(p=>p[1]),'Outra patologia (qual)','Localização e observações das patologias',...ENS.map(e=>'Ensaio: '+e[1]),'Outro ensaio (qual)','Observações'];
+  const rows=L.map(f=>[f.processo,f.edificio,f.fracao,f.andar,f.tipo,f.proprietario,f.presente==='sim'?'SIM':f.presente==='nao'?'NÃO':'',dataPT(f.dia),f.hora,
+    ...PATS.map(([k])=>f.pats[k]?'X':''),f.pats.outro?f.patOutro:'',PATS.filter(([k])=>f.pats[k]&&(f.pats[k].obs||locTxt(f.pats[k]))).map(([k])=>patNome(f,k)+(locTxt(f.pats[k])?' ['+locTxt(f.pats[k])+']':'')+(f.pats[k].obs?': '+f.pats[k].obs:'')).join(' | '),
+    ...ENS.map(([k])=>f.ensaios[k]?'X':''),f.ensaios.outro?f.ensaioOutro:'',f.obs].map(q).join(';'));
+  descarregar(`INFRAPAT_${proc.replace(/[^\w.-]+/g,'_')}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
+}
+
+/* ---------- app instalável (PWA) ---------- */
+let pedidoInstalar=null;
+const instalada=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pedidoInstalar=e; $('#bInstalar').classList.remove('hide'); });
+window.addEventListener('appinstalled',()=>{ pedidoInstalar=null; $('#bInstalar').classList.add('hide'); toast('INFRAPAT instalada — use o ícone no ecrã inicial.'); });
+$('#bInstalar').onclick=async()=>{ if(!pedidoInstalar) return; pedidoInstalar.prompt(); await pedidoInstalar.userChoice; pedidoInstalar=null; $('#bInstalar').classList.add('hide'); };
+if(instalada()) $('#bPainel').classList.add('hide');
+
+/* ---------- arranque ---------- */
+$('#bLista').onclick=()=>mostrarLista();
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') flush(); });
+DB.open().then(()=>DB.all()).then(L=>{ FICHAS=L.map(normFicha); mostrarLista(); })
+  .catch(e=>{ document.body.innerHTML='<p style="padding:20px">Erro ao abrir a base de dados local: '+e+'</p>'; });
+</script>
+</body>
+</html>
