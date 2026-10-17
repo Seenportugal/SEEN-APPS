@@ -174,7 +174,7 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
     <button class="hdr" id="bLista">☰ Lista</button>
     <button class="hdr" id="bImportVisit" title="Importar uma ficha VISIT (.html) ou backup VISIT (.json) — cria uma ficha por fração">📥 Importar VISIT</button>
     <button class="hdr" id="bNovaFr" title="Criar ficha de uma fração que não veio da VISIT">＋ Fração</button>
-    <button class="hdr" id="bBackup">⬇ Backup</button>
+    <button class="hdr" id="bBackup" title="Guardar backup (.json) — no telemóvel escolha Drive e a pasta">⬇ Backup</button>
     <button class="hdr" id="bRestore">⬆ Restaurar</button>
     <button class="hdr" id="bPainel" onclick="history.back()">⟵ Painel</button>
   </div>
@@ -266,20 +266,20 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 <div id="toast"></div>
 <div id="print"></div>
 <input type="file" id="fileVisit" accept=".html,.htm,.json,text/html,application/json" multiple class="hide">
-<input type="file" id="fileRestore" accept=".json,application/json" class="hide">
+<input type="file" id="fileRestore" accept=".json,.txt,application/json,text/plain" class="hide">
 <input type="file" id="fileFoto" accept="image/*" multiple class="hide">
 <input type="file" id="fileFotoCam" accept="image/*" capture="environment" class="hide">
 
 <script>
 /* ============================================================
-   INFRAPAT · v1.5 · Registo de patologias no interior das frações
+   INFRAPAT · v1.5.1 · Registo de patologias no interior das frações
    Uma ficha por fração: {id, processo, edificio, morada, fracao, andar, tipo,
    proprietario, presente, dia, hora, marc, pats:{k:{locs:{},locOutro,obs,fotos[]}}, patOutro,
    ensaios:{k:true}, ensaioOutro, obs, criado, atualizado}
    Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
    Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
    ============================================================ */
-const VERSAO='1.5';
+const VERSAO='1.5.1';
 const PATS=[
   ['inf_ext','Infiltrações com origem no exterior'],
   ['condens','Condensações superficiais / fungos / bolores'],
@@ -385,9 +385,33 @@ $('#fileVisit').addEventListener('change',e=>importarVisit([...e.target.files]))
 
 /* ---------- backup ---------- */
 function descarregar(nome,conteudo,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([conteudo],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
+/* Backup: no telemóvel abre a folha de partilha → escolher "Drive" e a pasta.
+   No computador (Chrome/Edge) abre "Guardar como" → pode escolher a pasta do Drive (G:\…).
+   Sem nenhuma das duas, descarrega para Transferências. */
+const _mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+function _ficheiroPartilhavel(nome,txt){
+  // O Chrome Android não aceita partilhar .json → tenta .json, senão .txt (conteúdo igual; o Restaurar aceita ambos)
+  for(const [n,t] of [[nome,'application/json'],[nome.replace(/\.json$/,'.txt'),'text/plain']]){
+    try{ const f=new File([txt],n,{type:t}); if(navigator.canShare&&navigator.canShare({files:[f]})) return f; }catch(e){}
+  }
+  return null;
+}
 $('#bBackup').onclick=async()=>{ await flush(); const L=UI.proc?FICHAS.filter(f=>f.processo===UI.proc):FICHAS;
   if(!L.length){toast('Nada para exportar.');return;}
-  descarregar(`INFRAPAT_${(UI.proc||'todos').replace(/[^\w.-]+/g,'_')}_${agora().d}.json`,JSON.stringify({app:'INFRAPAT',versao:VERSAO,fichas:L}),'application/json'); };
+  const nome=`INFRAPAT_${(UI.proc||'todos').replace(/[^\w.-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
+  const txt=JSON.stringify({app:'INFRAPAT',versao:VERSAO,fichas:L});
+  // 1) telemóvel: partilhar → Drive
+  if(_mobile&&navigator.share){ const f=_ficheiroPartilhavel(nome,txt);
+    if(f){ try{ await navigator.share({files:[f],title:nome}); toast('Backup enviado. No Drive, confirme a pasta e toque em Guardar.'); return; }
+      catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} /* outro erro → tenta abaixo */ } } }
+  // 2) computador: "Guardar como" (permite escolher a pasta do Drive)
+  if(window.showSaveFilePicker){
+    try{ const h=await showSaveFilePicker({id:'infrapat-backup',suggestedName:nome,types:[{description:'Backup INFRAPAT',accept:{'application/json':['.json']}}]});
+      const w=await h.createWritable(); await w.write(txt); await w.close(); toast('Backup guardado: '+h.name); return; }
+    catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} }
+  }
+  // 3) recurso: descarregar
+  descarregar(nome,txt,'application/json'); toast('Backup descarregado para Transferências.'); };
 $('#bRestore').onclick=()=>{ $('#fileRestore').value=''; $('#fileRestore').click(); };
 $('#fileRestore').addEventListener('change',async e=>{
   const file=e.target.files[0]; if(!file) return;
