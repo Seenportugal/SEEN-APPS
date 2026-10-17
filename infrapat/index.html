@@ -105,6 +105,14 @@ dialog form{padding:16px}
 dialog h3{margin:0 0 12px;color:var(--pri)}
 .dlgacts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 #print{display:none}
+.emficha .inst{display:none!important}
+.inst{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#9c3d33,#5e211b);color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:0 3px 10px rgba(123,45,38,.3)}
+.inst img{width:52px;height:52px;border-radius:50%;flex:0 0 auto}
+.inst .it{flex:1;min-width:0}
+.inst .it b{display:block;font-size:16px}
+.inst .it span{font-size:13px;opacity:.9}
+.inst #bInstalar{background:#fff;color:#7b2d26;font-weight:700;white-space:nowrap;padding:11px 16px}
+.inst .x{background:transparent;color:#fff;opacity:.7;padding:6px 8px;font-size:16px}
 @media (max-width:640px){
   .g2,.g4{grid-template-columns:1fr 1fr}
   .g3{grid-template-columns:1fr 1fr}
@@ -112,6 +120,9 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
   .ens{grid-template-columns:1fr}
   .locs{grid-template-columns:1fr 1fr}
   .fr{grid-template-columns:64px 1fr}
+  .inst{flex-wrap:wrap}
+  .inst .it{flex:1 1 calc(100% - 70px)}
+  .inst #bInstalar{flex:1}
   .fr .st{grid-column:1/-1}
   header h1 small{display:none}
   .hrow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 10px}
@@ -165,12 +176,17 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
     <button class="hdr" id="bNovaFr" title="Criar ficha de uma fração que não veio da VISIT">＋ Fração</button>
     <button class="hdr" id="bBackup">⬇ Backup</button>
     <button class="hdr" id="bRestore">⬆ Restaurar</button>
-    <button class="hdr hide" id="bInstalar" title="Instalar a INFRAPAT neste aparelho (ícone no ecrã inicial)">⬇ Instalar app</button>
     <button class="hdr" id="bPainel" onclick="history.back()">⟵ Painel</button>
   </div>
 </header>
 
 <main>
+  <div id="instBox" class="inst hide">
+    <img src="icon-192.png" alt="">
+    <div class="it"><b>Instalar a INFRAPAT</b><span id="instTxt">Fica com o ícone no ecrã inicial e abre em ecrã inteiro, mesmo sem rede.</span></div>
+    <button id="bInstalar">⬇ Instalar app</button>
+    <button class="x" id="bInstX" title="Agora não">✕</button>
+  </div>
   <section id="vLista">
     <div class="bar">
       <select id="selProc"></select>
@@ -255,14 +271,14 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 
 <script>
 /* ============================================================
-   INFRAPAT · v1.3 · Registo de patologias no interior das frações
+   INFRAPAT · v1.4 · Registo de patologias no interior das frações
    Uma ficha por fração: {id, processo, edificio, morada, fracao, andar, tipo,
    proprietario, presente, dia, hora, marc, pats:{k:{locs:{},locOutro,obs,fotos[]}}, patOutro,
    ensaios:{k:true}, ensaioOutro, obs, criado, atualizado}
    Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
    Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
    ============================================================ */
-const VERSAO='1.3';
+const VERSAO='1.4';
 const PATS=[
   ['inf_ext','Infiltrações com origem no exterior'],
   ['condens','Condensações superficiais / fungos / bolores'],
@@ -388,7 +404,7 @@ const sortF=(a,b)=>(a.marc||'').localeCompare(b.marc||'')||String(a.fracao).loca
 const nPats=f=>Object.keys(f.pats).length;
 async function mostrarLista(){
   await flush(); cur=null;
-  $('#vFicha').classList.add('hide'); $('#vLista').classList.remove('hide'); $('#saveInd').textContent='';
+  $('#vFicha').classList.add('hide'); $('#vLista').classList.remove('hide'); $('#saveInd').textContent=''; document.body.classList.remove('emficha');
   const procs=[...new Map(FICHAS.map(f=>[f.processo,f])).values()].sort((a,b)=>String(b.processo).localeCompare(String(a.processo),'pt',{numeric:true}));
   if(UI.proc&&!procs.some(p=>p.processo===UI.proc)) UI.proc='';
   $('#selProc').innerHTML=`<option value="">Todos os processos</option>`+procs.map(p=>`<option value="${esc(p.processo)}"${p.processo===UI.proc?' selected':''}>${esc(p.processo)} · ${esc(p.edificio)}</option>`).join('');
@@ -440,7 +456,7 @@ $('#dlgFr').addEventListener('close',async()=>{
 const irmas=()=>FICHAS.filter(f=>f.processo===cur.processo).sort(sortF);
 async function abrir(f){
   await flush(); if(!f) return; cur=f;
-  $('#vLista').classList.add('hide'); $('#vFicha').classList.remove('hide'); $('#saveInd').textContent='';
+  $('#vLista').classList.add('hide'); $('#vFicha').classList.remove('hide'); $('#saveInd').textContent=''; document.body.classList.add('emficha');
   document.querySelectorAll('#vFicha [data-f]').forEach(el=>{ el.value=cur[el.dataset.f]??''; });
   renderSeg(); renderPats(); renderEns(); renderNav(); autoH($('#ta_obs')); window.scrollTo(0,0);
 }
@@ -561,13 +577,24 @@ function exportCSV(proc){
 }
 
 /* ---------- app instalável (PWA) ---------- */
+// Faixa "Instalar app" no topo enquanto a app não estiver instalada; desaparece depois de instalada.
 let pedidoInstalar=null;
 const instalada=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const iOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const instDispensado=()=>{ try{ return +localStorage.getItem('infrapat_inst_x')>Date.now(); }catch(e){ return false; } };
+function mostrarInst(){
+  const box=$('#instBox'); if(instalada()||instDispensado()){ box.classList.add('hide'); return; }
+  if(pedidoInstalar){ $('#instTxt').textContent='Fica com o ícone no ecrã inicial e abre em ecrã inteiro, mesmo sem rede.'; $('#bInstalar').classList.remove('hide'); box.classList.remove('hide'); }
+  else if(iOS){ $('#instTxt').innerHTML='No Safari: toque em <b>Partilhar</b> e depois em <b>Adicionar ao ecrã principal</b>.'; $('#bInstalar').classList.add('hide'); box.classList.remove('hide'); }
+  else box.classList.add('hide');
+}
 if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
-window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pedidoInstalar=e; $('#bInstalar').classList.remove('hide'); });
-window.addEventListener('appinstalled',()=>{ pedidoInstalar=null; $('#bInstalar').classList.add('hide'); toast('INFRAPAT instalada — use o ícone no ecrã inicial.'); });
-$('#bInstalar').onclick=async()=>{ if(!pedidoInstalar) return; pedidoInstalar.prompt(); await pedidoInstalar.userChoice; pedidoInstalar=null; $('#bInstalar').classList.add('hide'); };
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pedidoInstalar=e; mostrarInst(); });
+window.addEventListener('appinstalled',()=>{ pedidoInstalar=null; $('#instBox').classList.add('hide'); toast('INFRAPAT instalada — use o ícone no ecrã inicial.'); });
+$('#bInstalar').onclick=async()=>{ if(!pedidoInstalar) return; pedidoInstalar.prompt(); const r=await pedidoInstalar.userChoice; pedidoInstalar=null; if(r.outcome!=='accepted') toast('Pode instalar mais tarde pelo menu ⋮ → Instalar aplicação.'); mostrarInst(); };
+$('#bInstX').onclick=()=>{ try{ localStorage.setItem('infrapat_inst_x',String(Date.now()+7*864e5)); }catch(e){} $('#instBox').classList.add('hide'); };
 if(instalada()) $('#bPainel').classList.add('hide');
+mostrarInst();
 
 /* ---------- arranque ---------- */
 $('#bLista').onclick=()=>mostrarLista();
