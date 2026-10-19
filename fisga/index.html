@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FISGA · SEEN</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f4e5a">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FISGA">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
   --bg:#f2f4f4; --card:#fff; --ink:#1f2324; --muted:#6b7375; --line:#dbe2e3;
@@ -191,6 +199,7 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
     <button class="hdr" id="bNovaObra">＋ Obra</button>
     <button class="hdr" id="bBackup" title="Enviar agora para a pasta do Drive (ou guardar .json)">☁ Backup</button>
     <button class="hdr" id="bRestore">⬆ Restaurar</button>
+    <button class="hdr hide" id="bInstalar" title="Instalar a FISGA neste aparelho">📲 Instalar</button>
     <button class="hdr" id="bCfg" title="Configuração">⚙</button>
     <button class="hdr" onclick="history.back()">⟵ Painel</button>
   </div>
@@ -349,7 +358,7 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
             fotos[{src,leg}], proxData, proxHora, tops:[{desc}], horaFim, criado, atualizado}
    Metodologia igual à INFRAPAT: grava sozinho, backup .json para o Drive, impressão A4, CSV.
    ============================================================ */
-const VERSAO='1.5';
+const VERSAO='1.6';
 const FISCAL='PEDRO GOMES';           // presença fixa da Fiscalização
 const DRIVE_URL_DEF='https://script.google.com/macros/s/AKfycby0dx2so_OQVGSJCyjj0AF3q8yQwsNarjgn0znIfne4lEcW6v2fL36EiaS4t6SW5H8/exec';               // endereço do Apps Script (pode ficar aqui para todos os aparelhos)
 const DRIVE_TOKEN_DEF='';               // o código de acesso NÃO fica no ficheiro (repositório público): é pedido em ⚙ uma vez por aparelho
@@ -843,6 +852,17 @@ async function paginasPdf(f,max){ const doc=await docPdf(f.data), out=[], n=Math
     c.width=vp.width; c.height=vp.height; const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
     await pg.render({canvasContext:ctx,viewport:vp}).promise; out.push(c.toDataURL('image/jpeg',0.8)); }
   return {imgs:out,total:doc.numPages}; }
+
+/* ---------- app instalável (PWA) e funcionamento sem rede ---------- */
+let pedidoInstalar=null;
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  const _tinhaSW=!!navigator.serviceWorker.controller; let _recarregou=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_tinhaSW&&!_recarregou){ _recarregou=true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(e=>console.warn('SW',e));
+}
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); pedidoInstalar=e; $('#bInstalar').classList.remove('hide'); });
+window.addEventListener('appinstalled',()=>{ pedidoInstalar=null; $('#bInstalar').classList.add('hide'); toast('FISGA instalada — use o ícone no ecrã inicial.'); });
+$('#bInstalar').onclick=async()=>{ if(!pedidoInstalar) return; pedidoInstalar.prompt(); const r=await pedidoInstalar.userChoice; if(r.outcome==='accepted') $('#bInstalar').classList.add('hide'); pedidoInstalar=null; };
 
 /* ---------- arranque ---------- */
 $('#bLista').onclick=()=>mostrarLista();
