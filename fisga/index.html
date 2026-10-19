@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FISGA · SEEN</title>
+<style>
+:root{
+  --bg:#f2f4f4; --card:#fff; --ink:#1f2324; --muted:#6b7375; --line:#dbe2e3;
+  --pri:#1f4e5a; --pri2:#2b6878; --soft:#e4eff1; --ok:#1f8a4c; --okbg:#e3f5ea; --ko:#c0392b; --kobg:#fbe7e5; --wait:#b7791f; --waitbg:#fdf3e1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px}
+header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.hrow{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;letter-spacing:2px;flex:1;min-width:150px}
+header h1 small{font-weight:400;opacity:.8;margin-left:6px;font-size:12px;letter-spacing:0}
+#saveInd{font-size:12px;opacity:.85}
+button{font:inherit;border:0;border-radius:8px;padding:9px 13px;cursor:pointer;background:var(--pri2);color:#fff}
+button.sec{background:#fff;color:var(--pri);border:1px solid var(--line)}
+button.hdr{background:rgba(255,255,255,.14);color:#fff;padding:7px 11px;font-size:13px;border:1px solid rgba(255,255,255,.25)}
+button.del{background:#fff;color:var(--ko);border:1px solid #f0c9c9}
+button.small{padding:6px 10px;font-size:13px}
+button:disabled{opacity:.4;cursor:default}
+main{max-width:980px;margin:0 auto;padding:14px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--pri);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h2 em{font-style:normal;background:var(--soft);border-radius:10px;padding:1px 8px;font-size:12px;letter-spacing:0}
+.card h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--pri2);margin:14px 0 8px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.rua{grid-template-columns:3fr 1fr}
+.span2{grid-column:span 2}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.lbl{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.lbl label{margin:0;flex:1}
+input,select,textarea{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri2);border-color:transparent}
+input.fo{font-weight:700;letter-spacing:1px;color:var(--pri)}
+textarea{resize:vertical;min-height:100px;line-height:1.45}
+.nota{font-size:12px;color:var(--muted);margin-top:8px}
+.seg{display:flex;gap:4px}
+.seg button{flex:1;background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 4px;font-weight:600}
+.seg button.on{background:var(--pri2);border-color:var(--pri2);color:#fff}
+.seg button.s.on,.seg button.fav.on{background:var(--ok);border-color:var(--ok)}
+.seg button.n.on,.seg button.desf.on{background:var(--ko);border-color:var(--ko)}
+.seg button.mod.on{background:var(--wait);border-color:var(--wait)}
+.hora{display:flex;gap:6px}
+.hora button{white-space:nowrap}
+.mic{background:#fff;color:var(--pri);border:1px solid var(--line);padding:3px 9px;font-size:13px}
+.mic.on{background:var(--ko);color:#fff;border-color:var(--ko);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.pres{display:grid;gap:6px}
+.pr{border:1px solid var(--line);border-radius:8px;background:#fff}
+.pr.on{border-color:var(--pri2);background:var(--soft)}
+.pr>label{display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;font-size:14px;color:var(--ink);cursor:pointer}
+.pr>label input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--pri2)}
+.pr>label span{flex:1;font-weight:600}
+.pr .det{display:none;padding:0 12px 10px}
+.pr.on .det{display:block}
+.ant{background:var(--waitbg);border:1px solid #f0dcb4;border-radius:8px;padding:10px 12px;font-size:14px;white-space:pre-wrap;margin-bottom:10px}
+.ant b{display:block;font-size:12px;color:var(--wait);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.bar select,.bar input{width:auto;flex:1;min-width:150px}
+.obra{margin-bottom:18px}
+.obra-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 8px}
+.obra-h b{color:var(--pri);font-size:15px}
+.obra-h span{color:var(--muted);font-size:13px;flex:1}
+.vr{display:grid;grid-template-columns:70px 1fr auto;gap:4px 12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--wait);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.vr:hover{background:#fafdfd}
+.vr.nao{border-left-color:var(--ok)} .vr.sim{border-left-color:var(--ko)}
+.vr .f{font-weight:700;font-size:16px;color:var(--pri)}
+.vr .f small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.vr .p{font-size:13px}
+.vr .p small{display:block;color:var(--muted);font-size:12px}
+.st .pill{margin-right:4px}
+.pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--pri);white-space:nowrap;display:inline-block;margin:2px 0}
+.pill.ok{background:var(--okbg);color:var(--ok)} .pill.ko{background:var(--kobg);color:var(--ko)} .pill.w{background:var(--waitbg);color:var(--wait)}
+.fotos{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.foto{width:120px}
+.foto .im{position:relative;width:120px;height:120px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.foto img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.foto .im button{position:absolute;top:3px;right:3px;padding:2px 7px;font-size:13px;background:rgba(0,0,0,.6)}
+.foto input{margin-top:4px;padding:5px 6px;font-size:12px}
+.addf{display:flex;flex-direction:column;gap:6px;width:120px}
+.addf button{height:57px;border:2px dashed var(--line);background:#fafafa;color:var(--pri);font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+.nav{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.nav .t{flex:1;text-align:center;font-weight:700;color:var(--pri)}
+.nav .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.row-btn{display:flex;gap:8px;flex-wrap:wrap}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+.dur{font-size:13px;color:var(--muted);margin-top:6px}
+.dur.warn{color:var(--ko)}
+.hide{display:none!important}
+#zoom{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:50}
+#zoom img{max-width:96vw;max-height:94vh}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1f2324;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90vw}
+#toast.on{opacity:.95}
+dialog{border:none;border-radius:12px;padding:0;width:min(520px,94vw);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{padding:16px}
+dialog h3{margin:0 0 12px;color:var(--pri)}
+.dlgacts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.conf{border:1px solid var(--line);border-left:4px solid var(--ko);border-radius:10px;padding:10px 12px;margin:10px 0;background:#fff}
+.conf-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.conf-h b{color:var(--ko);font-size:15px;letter-spacing:.5px;flex:1}
+.conf-h i{font-style:normal;font-size:12px;color:var(--muted)}
+.conf.top{border-left-color:var(--pri2)}
+.conf.top .conf-h b{color:var(--pri2)}
+.ant ol{margin:0;padding-left:0;list-style:none}
+.ant li{margin:2px 0}
+#driveInd.off{color:#ffd0c9;cursor:pointer;text-decoration:underline}
+.pr.lock>label{cursor:default}
+.pr.lock input[readonly]{background:var(--soft);font-weight:700;color:var(--pri);border-color:transparent}
+#driveInd{font-size:12px;opacity:.9;white-space:nowrap}
+#driveInd.ko{color:#ffd0c9}
+.bpdf{background:#fff;color:var(--pri);border:1px solid var(--line);padding:3px 9px;font-size:13px}
+.bpdf:disabled{opacity:.6}
+#pdfSt{font-size:12px;color:var(--pri2);margin-top:6px}
+.pdfs{display:grid;gap:6px;margin-top:8px}
+.pdf{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fafcfc;flex-wrap:wrap}
+.pdf>span{font-size:22px}
+.pdf .n{flex:1;min-width:140px;font-size:14px;word-break:break-word}
+.pdf .n small{display:block;color:var(--muted);font-size:12px}
+#print{display:none}
+@media (max-width:640px){
+  .g3,.g4{grid-template-columns:1fr 1fr}
+  .g2.m1{grid-template-columns:1fr}
+  .span2{grid-column:1/-1}
+  .vr{grid-template-columns:56px 1fr}
+  .vr .st{grid-column:1/-1}
+  header h1 small{display:none}
+  .hrow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 10px}
+  .hrow::-webkit-scrollbar{display:none}
+  header h1{min-width:auto;flex:0 0 auto;font-size:16px}
+  .hrow button{flex:0 0 auto}
+  #saveInd{flex:0 0 auto}
+  input,select,textarea{font-size:16px}
+  main{padding:10px 8px 80px}
+  .card{padding:12px 10px}
+  .obra-h span{flex:1 1 100%;order:1}
+  .obra-h button{order:2}
+  .nav{position:sticky;top:52px;z-index:5;background:var(--bg);padding:6px 0}
+  .nav button{padding:10px 16px;font-size:16px}
+  .seg button{padding:11px 2px;font-size:13px}
+  .foto,.foto .im,.addf{width:100px}
+  .foto .im{height:100px}
+  .addf button{height:47px}
+}
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  body{background:#fff;font-size:10pt}
+  header,main,#zoom,#toast,dialog{display:none!important}
+  #print{display:block}
+  #print .ficha{break-after:page}
+  #print .ficha:last-child{break-after:auto}
+  #print .lh{display:flex;justify-content:space-between;border-bottom:2px solid #1f4e5a;padding-bottom:6px;margin-bottom:10px}
+  #print .lh div{font-size:9pt;color:#444}
+  #print h1{font-size:14pt;margin:0 0 8px;color:#1f4e5a}
+  #print h3{font-size:10.5pt;margin:12px 0 5px;color:#1f4e5a;text-transform:uppercase;break-after:avoid}
+  #print table{width:100%;border-collapse:collapse;font-size:9pt}
+  #print th,#print td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top}
+  #print th{background:#e3eef0;width:20%}
+  #print td.o{white-space:pre-wrap}
+  #print .pt th{width:auto}
+  #print .pf{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+  #print .pf figure{margin:0;break-inside:avoid}
+  #print .pf img{display:block;width:100%;height:48mm;object-fit:cover;border:1px solid #ccc}
+  #print .pf figcaption{font-size:7.5pt;color:#555}
+  #print tr{break-inside:avoid}
+  #print .ass{display:flex;justify-content:flex-end;margin-top:22px}
+  #print .ass div{width:70mm;border-top:1px solid #444;text-align:center;font-size:8.5pt;padding-top:3px}
+  #print .anx figure{break-before:page;margin:0}
+  #print .anx img{display:block;width:100%;max-height:250mm;object-fit:contain;border:1px solid #ccc}
+  #print .anx figcaption{font-size:8pt;color:#555;margin-top:3px}
+  #print .rod{font-size:8pt;color:#666;margin-top:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <h1>FISGA <small>Fiscalização, Gestão e Acompanhamento de Obra · SEEN</small></h1>
+    <span id="saveInd"></span>
+    <span id="driveInd"></span>
+    <button class="hdr" id="bLista">☰ Lista</button>
+    <button class="hdr" id="bNovaObra">＋ Obra</button>
+    <button class="hdr" id="bBackup" title="Enviar agora para a pasta do Drive (ou guardar .json)">☁ Backup</button>
+    <button class="hdr" id="bRestore">⬆ Restaurar</button>
+    <button class="hdr" id="bCfg" title="Configuração">⚙</button>
+    <button class="hdr" onclick="history.back()">⟵ Painel</button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= LISTA ================= -->
+  <section id="vLista">
+    <div class="bar">
+      <select id="selObra"></select>
+      <input type="search" id="q" placeholder="Pesquisar obra, FO, localidade, gestão…">
+    </div>
+    <div id="listaBox"></div>
+  </section>
+
+  <!-- ================= FICHA DE VISITA ================= -->
+  <section id="vFicha" class="hide">
+    <div class="nav">
+      <button class="sec small" id="bPrev">◀</button>
+      <div class="t" id="navTit"></div>
+      <button class="sec small" id="bNext">▶</button>
+    </div>
+
+    <div class="card">
+      <h2>Obra</h2>
+      <div class="grid g2 m1">
+        <div><label>FO N.º</label><input class="fo" data-o="fo" inputmode="numeric" placeholder="0000.000" maxlength="8"></div>
+        <div><label>Obra</label><input data-o="nome" placeholder="Nome da obra"></div>
+      </div>
+      <h3>Localização</h3>
+      <div class="grid rua">
+        <div><label>Rua</label><input data-o="rua" placeholder="Rua / Avenida…"></div>
+        <div><label>N.º</label><input data-o="num"></div>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <div><label>Localidade</label><input data-o="localidade"></div>
+        <div><label>Código postal</label><input data-o="cp" inputmode="numeric" placeholder="0000-000" maxlength="8"></div>
+      </div>
+      <h3>Gestão</h3>
+      <div class="grid g2 m1">
+        <div><label>Empresa</label><input data-o="gEmpresa" placeholder="Nome da empresa de gestão"></div>
+        <div><label>Responsável</label><input data-o="gResp"></div>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <div><label>Telefone</label><input data-o="gTel" type="tel"></div>
+        <div><label>Email</label><input data-o="gEmail" type="email"></div>
+      </div>
+      <div class="nota">Os dados da obra são comuns a todas as visitas desta obra.</div>
+    </div>
+
+    <div class="card">
+      <h2>Visita</h2>
+      <div class="grid g3">
+        <div><label>Visita n.º</label><input data-v="n" type="number" min="1" inputmode="numeric"></div>
+        <div><label>Data</label><input data-v="data" type="date"></div>
+        <div class="hora-w"><label>Hora de início</label><div class="hora"><input type="time" data-v="horaIni"><button type="button" class="sec" data-agora="horaIni">⏱</button></div></div>
+      </div>
+      <div style="margin-top:10px"><label>Condições meteorológicas</label>
+        <div class="seg" data-seg="meteo"><button type="button" class="fav" data-val="Favoráveis">Favoráveis</button><button type="button" class="mod" data-val="Moderadas">Moderadas</button><button type="button" class="desf" data-val="Desfavoráveis">Desfavoráveis</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Presenças na visita <em id="nPres">0</em></h2>
+      <div class="pres" id="presBox"></div>
+    </div>
+
+    <div class="card">
+      <div id="antBox"></div>
+      <div class="lbl"><label>Ponto da situação</label><button type="button" class="bpdf" id="bPdf" title="Anexar PDF (escolher numa pasta)">📄 PDF</button><button type="button" class="mic" data-mic>🎤</button></div>
+      <textarea data-v="ponto" rows="5" placeholder="Estado atual dos trabalhos, frentes de obra, ocorrências…"></textarea>
+      <div class="pdfs" id="pdfBox"></div>
+      <div id="pdfSt" class="hide"></div>
+    </div>
+
+    <div class="card">
+      <h2>Não conformidades registadas <em id="nConf" class="hide">0</em></h2>
+      <div class="seg" data-seg="nc" style="max-width:320px"><button type="button" class="n" data-val="sim">SIM</button><button type="button" class="s" data-val="nao">NÃO</button></div>
+      <div id="ncDet" class="hide">
+        <div id="confBox"></div>
+        <button type="button" class="sec" id="bAddConf">＋ Adicionar não conformidade</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Registo fotográfico da fiscalização <em id="nFotos">0</em></h2>
+      <div class="fotos" data-fotos="fotos"></div>
+    </div>
+
+    <div class="card">
+      <h2>Próxima visita</h2>
+      <div class="grid g2">
+        <div><label>Data</label><input type="date" data-v="proxData"></div>
+        <div><label>Hora</label><input type="time" data-v="proxHora"></div>
+      </div>
+      <h3>Tópicos a verificar na próxima visita <em id="nTop" style="font-style:normal"></em></h3>
+      <div id="topBox"></div>
+      <button type="button" class="sec" id="bAddTop">＋ Adicionar tópico</button>
+    </div>
+
+    <div class="card">
+      <h2>Fim da visita</h2>
+      <div style="max-width:320px"><label>Hora fim da visita</label><div class="hora"><input type="time" data-v="horaFim"><button type="button" class="sec" data-agora="horaFim">⏱ Agora</button></div></div>
+      <div class="dur" id="dur"></div>
+    </div>
+
+    <div class="card">
+      <div class="row-btn">
+        <button class="sec" id="bPrintV">🖨 Imprimir relatório</button>
+        <button class="sec" id="bPrintObra">🖨 Imprimir todas as visitas da obra</button>
+        <button id="bNovaV">＋ Nova visita a esta obra</button>
+        <button class="del" id="bDelV">Eliminar visita</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlgObra">
+  <form method="dialog" id="frmObra">
+    <h3>Nova obra</h3>
+    <div class="grid g2">
+      <div><label>FO N.º</label><input name="fo" class="fo" required inputmode="numeric" placeholder="0000.000" maxlength="8"></div>
+      <div><label>Data da 1.ª visita</label><input name="data" type="date"></div>
+      <div class="span2" style="grid-column:1/-1"><label>Obra</label><input name="nome" required placeholder="Nome da obra"></div>
+    </div>
+    <div class="nota">Os restantes dados (localização, gestão) preenchem-se na ficha.</div>
+    <div class="dlgacts"><button class="sec" value="cancel" formnovalidate>Cancelar</button><button value="ok">Criar obra</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgCfg">
+  <form method="dialog" id="frmCfg">
+    <h3>Configuração</h3>
+    <label>Endereço do script do Drive (Apps Script)</label>
+    <input name="url" placeholder="https://script.google.com/macros/s/…/exec">
+    <div style="margin-top:10px;max-width:240px"><label>Código de acesso</label><input name="token"></div>
+    <div class="nota">Com o endereço preenchido, cada visita é arquivada automaticamente na pasta do Drive <b>FISCALIZAÇÃO DE OBRA.PROCESSOS</b> (subpasta por obra) ao sair da ficha, ao fechar a app e de 3 em 3 minutos.</div>
+    <div class="dlgacts"><button type="button" class="sec" id="bTestDrive">Testar ligação</button><button class="sec" value="cancel" formnovalidate>Cancelar</button><button value="ok">Guardar</button></div>
+  </form>
+</dialog>
+
+<div id="zoom"><img alt=""></div>
+<div id="toast"></div>
+<div id="print"></div>
+<input type="file" id="fileRestore" accept=".json,.txt,application/json,text/plain" multiple class="hide">
+<input type="file" id="fileCam" accept="image/*" capture="environment" class="hide">
+<input type="file" id="fileGal" accept="image/*" multiple class="hide">
+<input type="file" id="filePdf" accept="application/pdf,.pdf" multiple class="hide">
+
+<script>
+/* ============================================================
+   FISGA · v1.0 · Fiscalização, Gestão e Acompanhamento de Obra
+   Duas tabelas locais (IndexedDB "SEEN_FISGA"):
+   obras   {id, fo, nome, rua, num, localidade, cp, gEmpresa, gResp, gTel, gEmail, criado, atualizado}
+   visitas {id, obraId, n, data, horaIni, meteo, pres:{k:{on,nomes}}, ponto, pdfs:[{nome,tam,pags,data}], nc, confs:[{desc,fotos[{src,leg}],obs}],
+            fotos[{src,leg}], proxData, proxHora, tops:[{desc}], horaFim, criado, atualizado}
+   Metodologia igual à INFRAPAT: grava sozinho, backup .json para o Drive, impressão A4, CSV.
+   ============================================================ */
+const VERSAO='1.5';
+const FISCAL='PEDRO GOMES';           // presença fixa da Fiscalização
+const DRIVE_URL_DEF='https://script.google.com/macros/s/AKfycby0dx2so_OQVGSJCyjj0AF3q8yQwsNarjgn0znIfne4lEcW6v2fL36EiaS4t6SW5H8/exec';               // endereço do Apps Script (pode ficar aqui para todos os aparelhos)
+const DRIVE_TOKEN_DEF='';               // o código de acesso NÃO fica no ficheiro (repositório público): é pedido em ⚙ uma vez por aparelho
+const PASTA_DRIVE='FISCALIZAÇÃO DE OBRA.PROCESSOS';
+const PRES=[['fisc','Fiscalização'],['gestao','Gestão'],['empr','Empreiteiro'],['cond','Condóminos'],['oper','Operários']];
+const PRES_PH={fisc:'Nome(s)',gestao:'Nome(s)',empr:'Empresa / encarregado',cond:'Nome(s) / frações',oper:'N.º de operários / empresa'};
+
+/* ---------- utilitários ---------- */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pad=n=>String(n).padStart(2,'0');
+const agora=()=>{const d=new Date();return {d:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,h:`${pad(d.getHours())}:${pad(d.getMinutes())}`};};
+const dataPT=d=>d?d.split('-').reverse().join('/'):'';
+const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+const fmtFO=v=>{const d=String(v||'').replace(/\D/g,'').slice(0,7);return d.length>4?d.slice(0,4)+'.'+d.slice(4):d;};
+const fmtCP=v=>{const d=String(v||'').replace(/\D/g,'').slice(0,7);return d.length>4?d.slice(0,4)+'-'+d.slice(4):d;};
+const morada=o=>[[o.rua,o.num].filter(Boolean).join(', '),[o.cp,o.localidade].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+const min=h=>{if(!h)return null;const[a,b]=h.split(':').map(Number);return a*60+b;};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),3500);}
+
+/* ---------- IndexedDB ---------- */
+const DB={
+  db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open('SEEN_FISGA',1);
+    r.onupgradeneeded=e=>{const d=e.target.result;
+      if(!d.objectStoreNames.contains('obras'))d.createObjectStore('obras',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('visitas'))d.createObjectStore('visitas',{keyPath:'id'});};
+    r.onsuccess=e=>{this.db=e.target.result;res();};r.onerror=e=>rej(e.target.error);});},
+  st(t,m){return this.db.transaction(t,m).objectStore(t);},
+  all(t){return new Promise(res=>{const q=this.st(t,'readonly').getAll();q.onsuccess=()=>res(q.result||[]);});},
+  put(t,o){return new Promise((res,rej)=>{const q=this.st(t,'readwrite').put(o);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});},
+  del(t,id){return new Promise(res=>{const q=this.st(t,'readwrite').delete(id);q.onsuccess=()=>res();});}
+};
+let OBRAS=[], VIS=[], cur=null, curO=null, saveT=null, UI={obra:''};
+try{Object.assign(UI,JSON.parse(localStorage.getItem('fisga_ui')||'{}'));}catch(e){}
+const saveUI=()=>{try{localStorage.setItem('fisga_ui',JSON.stringify(UI));}catch(e){}};
+
+function normObra(o){ return Object.assign({id:uid('ob'),fo:'',nome:'',rua:'',num:'',localidade:'',cp:'',gEmpresa:'',gResp:'',gTel:'',gEmail:'',
+  criado:new Date().toISOString(),atualizado:new Date().toISOString()},o||{}); }
+function normVis(v){
+  const n=Object.assign({id:uid('vi'),obraId:'',n:1,data:'',horaIni:'',meteo:'',pres:{},ponto:'',nc:'',confs:[],fotos:[],
+    proxData:'',proxHora:'',tops:[],pdfs:[],horaFim:'',criado:new Date().toISOString(),atualizado:new Date().toISOString()},v||{});
+  if(!n.pres||typeof n.pres!=='object') n.pres={};
+  PRES.forEach(([k])=>{ const p=n.pres[k]||{}; n.pres[k]={on:!!p.on,nomes:p.nomes||''}; });
+  n.pres.fisc={on:true,nomes:FISCAL};
+  const nf=L=>Array.isArray(L)?L.map(f=>typeof f==='string'?{src:f,leg:''}:{src:f.src,leg:f.leg||''}):[];
+  n.fotos=nf(n.fotos);
+  if(!Array.isArray(n.confs)) n.confs=[];
+  if(!n.confs.length&&((n.ncFotos&&n.ncFotos.length)||n.ncObs)) n.confs=[{desc:'',fotos:n.ncFotos||[],obs:n.ncObs||''}]; // migração v1.0
+  delete n.ncFotos; delete n.ncObs;
+  n.confs=n.confs.map(c=>({desc:c.desc||'',fotos:nf(c.fotos),obs:c.obs||''}));
+  if(!Array.isArray(n.tops)) n.tops=[];
+  if(!n.tops.length&&n.topicos) n.tops=String(n.topicos).split(/\n+/).map(x=>x.replace(/^\s*[-•*\d.)]+\s*/,'').trim()).filter(Boolean).map(desc=>({desc})); // migração v1.1
+  delete n.topicos;
+  n.tops=n.tops.map(t=>({desc:t.desc||''}));
+  n.pdfs=Array.isArray(n.pdfs)?n.pdfs.filter(f=>f&&f.data):[];
+  return n;
+}
+const obraDe=v=>OBRAS.find(o=>o.id===v.obraId);
+const visDe=o=>VIS.filter(v=>v.obraId===o.id).sort((a,b)=>(+a.n||0)-(+b.n||0)||(a.data||'').localeCompare(b.data||''));
+
+function agendar(){ $('#saveInd').textContent='a gravar…'; clearTimeout(saveT); saveT=setTimeout(gravar,500); }
+async function gravar(){
+  saveT=null; if(!cur) return; const t=new Date().toISOString(); cur.atualizado=t;
+  try{ await DB.put('visitas',cur); if(curO){ curO.atualizado=t; await DB.put('obras',curO); } $('#saveInd').textContent='✓ gravado'; marcarDrive(cur.id); }
+  catch(e){ $('#saveInd').textContent='⚠ erro'; alert('Erro ao gravar: '+(e.message||e)); }
+}
+async function flush(){ if(saveT){ clearTimeout(saveT); await gravar(); } }
+
+/* ---------- backup ---------- */
+function descarregar(nome,conteudo,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([conteudo],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
+const _mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+function _ficheiroPartilhavel(nome,txt){
+  for(const [n,t] of [[nome,'application/json'],[nome.replace(/\.json$/,'.txt'),'text/plain']]){
+    try{ const f=new File([txt],n,{type:t}); if(navigator.canShare&&navigator.canShare({files:[f]})) return f; }catch(e){}
+  }
+  return null;
+}
+$('#bBackup').onclick=async()=>{ await flush();
+  if(CFG.url){ const ids=new Set((UI.obra?OBRAS.filter(o=>o.id===UI.obra):OBRAS).map(o=>o.id));
+    VIS.filter(v=>ids.has(v.obraId)).forEach(v=>DIRTY.add(v.id)); saveDirty(); await syncDrive(true); return; }
+  const O=UI.obra?OBRAS.filter(o=>o.id===UI.obra):OBRAS; const ids=new Set(O.map(o=>o.id)); const V=VIS.filter(v=>ids.has(v.obraId));
+  if(!O.length){toast('Nada para exportar.');return;}
+  const tag=UI.obra&&O[0]?('FO'+O[0].fo):'todas';
+  const nome=`FISGA_${tag.replace(/[^\w.-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
+  const txt=JSON.stringify({app:'FISGA',versao:VERSAO,obras:O,visitas:V});
+  if(_mobile&&navigator.share){ const f=_ficheiroPartilhavel(nome,txt);
+    if(f){ try{ await navigator.share({files:[f],title:nome}); toast('Backup enviado. No Drive, confirme a pasta e toque em Guardar.'); return; }
+      catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} } } }
+  if(window.showSaveFilePicker){
+    try{ const h=await showSaveFilePicker({id:'fisga-backup',suggestedName:nome,types:[{description:'Backup FISGA',accept:{'application/json':['.json']}}]});
+      const w=await h.createWritable(); await w.write(txt); await w.close(); toast('Backup guardado: '+h.name); return; }
+    catch(e){ if(e.name==='AbortError'){toast('Backup cancelado.');return;} }
+  }
+  descarregar(nome,txt,'application/json'); toast('Backup descarregado para Transferências.'); };
+$('#bRestore').onclick=()=>{ $('#fileRestore').value=''; $('#fileRestore').click(); };
+$('#fileRestore').addEventListener('change',async e=>{
+  const files=[...e.target.files]; if(!files.length) return; let n=0,s=0;
+  for(const file of files) try{ const d=JSON.parse(await file.text()); if(d.app!=='FISGA'||!Array.isArray(d.obras)) throw new Error(file.name+' não é um backup FISGA');
+    for(const x of d.obras){ const o=normObra(x), ex=OBRAS.find(a=>a.id===o.id);
+      if(ex){ if((ex.atualizado||'')>(o.atualizado||'')) continue; OBRAS.splice(OBRAS.indexOf(ex),1); }
+      OBRAS.push(o); await DB.put('obras',o); }
+    for(const x of (d.visitas||[])){ const v=normVis(x), ex=VIS.find(a=>a.id===v.id);
+      if(ex){ if((ex.atualizado||'')>(v.atualizado||'') && !confirm(`A visita n.º ${v.n} (${dataPT(v.data)}) deste aparelho é mais recente. Substituir pela do backup?`)){s++;continue;} VIS.splice(VIS.indexOf(ex),1); }
+      VIS.push(v); await DB.put('visitas',v); n++; }
+  }catch(err){ alert('Erro: '+err.message); }
+  toast(`${n} visita(s) restaurada(s)${s?`, ${s} mantida(s)`:''}.`); mostrarLista();
+});
+
+/* ---------- lista ---------- */
+const sortO=(a,b)=>String(b.fo).localeCompare(String(a.fo),'pt',{numeric:true});
+async function mostrarLista(){
+  await flush(); pararMic(); cur=null; curO=null; syncDrive();
+  $('#vFicha').classList.add('hide'); $('#vLista').classList.remove('hide'); $('#saveInd').textContent='';
+  const obs=[...OBRAS].sort(sortO);
+  if(UI.obra&&!obs.some(o=>o.id===UI.obra)) UI.obra='';
+  $('#selObra').innerHTML=`<option value="">Todas as obras</option>`+obs.map(o=>`<option value="${o.id}"${o.id===UI.obra?' selected':''}>FO ${esc(o.fo)} · ${esc(o.nome)}</option>`).join('');
+  if(!OBRAS.length){ $('#listaBox').innerHTML=`<div class="card empty"><b>Sem obras</b>Crie a primeira obra — fica logo aberta a ficha da visita n.º 1.<br><br><button id="bE1">＋ Nova obra</button></div>`;
+    $('#bE1').onclick=()=>$('#bNovaObra').click(); return; }
+  const q=norm($('#q').value);
+  const L=obs.filter(o=>(!UI.obra||o.id===UI.obra)&&(!q||norm([o.fo,o.nome,o.rua,o.localidade,o.gEmpresa,o.gResp].join(' ')).includes(q)));
+  let h='';
+  for(const o of L){
+    const vs=visDe(o), ult=vs[vs.length-1], prox=ult&&ult.proxData;
+    h+=`<div class="obra"><div class="obra-h"><b>FO ${esc(o.fo)} · ${esc(o.nome)}</b><span>${[o.localidade,o.gEmpresa,vs.length+' visita'+(vs.length!==1?'s':''),prox?'próxima '+dataPT(prox)+(ult.proxHora?' '+ult.proxHora:''):''].filter(Boolean).map(esc).join(' · ')}</span>
+      <button class="small" data-nv="${o.id}">＋ Visita</button><button class="sec small" data-po="${o.id}">🖨</button><button class="sec small" data-csv="${o.id}">⬇ CSV</button><button class="del small" data-delo="${o.id}">Eliminar</button></div>`;
+    h+=vs.slice().reverse().map(v=>{ const cls=v.nc==='sim'?'sim':v.nc==='nao'?'nao':'', nf=v.fotos.length+v.confs.reduce((a,c)=>a+c.fotos.length,0);
+      return `<div class="vr ${cls}" data-id="${v.id}"><div class="f">V${esc(v.n)}<small>${dataPT(v.data)}</small></div>
+        <div class="p">${v.horaIni?esc(v.horaIni):'—'}${v.horaFim?' – '+esc(v.horaFim):''}${v.meteo?' · '+esc(v.meteo):''}<small>${esc((v.ponto||'').slice(0,90))}${(v.ponto||'').length>90?'…':''}</small></div>
+        <div class="st">${v.nc==='sim'?`<span class="pill ko">NC: ${v.confs.length||'Sim'}</span>`:v.nc==='nao'?'<span class="pill ok">NC: Não</span>':'<span class="pill w">NC: —</span>'}
+        ${nf?`<span class="pill">${nf} foto${nf>1?'s':''}</span>`:''}${v.pdfs.length?`<span class="pill">📄 ${v.pdfs.length} PDF</span>`:''}${!v.horaFim?'<span class="pill w">Em curso</span>':''}</div></div>`; }).join('')
+      || '<div class="card empty" style="padding:14px">Sem visitas.</div>';
+    h+='</div>';
+  }
+  $('#listaBox').innerHTML=h||'<div class="card empty">Nenhuma obra corresponde à pesquisa.</div>';
+}
+$('#selObra').addEventListener('change',e=>{UI.obra=e.target.value;saveUI();mostrarLista();});
+$('#q').addEventListener('input',()=>mostrarLista());
+$('#listaBox').addEventListener('click',async e=>{
+  const b=e.target.closest('button');
+  if(b&&b.dataset.nv){ novaVisita(OBRAS.find(o=>o.id===b.dataset.nv)); return; }
+  if(b&&b.dataset.po){ const o=OBRAS.find(x=>x.id===b.dataset.po); imprimir(visDe(o)); return; }
+  if(b&&b.dataset.csv){ exportCSV(OBRAS.find(o=>o.id===b.dataset.csv)); return; }
+  if(b&&b.dataset.delo){ const o=OBRAS.find(x=>x.id===b.dataset.delo), vs=visDe(o);
+    if(!confirm(`Eliminar a obra FO ${o.fo} e as suas ${vs.length} visita(s)? (Faça antes um backup, se necessário.)`)) return;
+    for(const v of vs){ await DB.del('visitas',v.id); VIS.splice(VIS.indexOf(v),1); }
+    await DB.del('obras',o.id); OBRAS.splice(OBRAS.indexOf(o),1); mostrarLista(); return; }
+  const r=e.target.closest('.vr'); if(r) abrir(VIS.find(v=>v.id===r.dataset.id));
+});
+
+/* ---------- nova obra / nova visita ---------- */
+$('#bNovaObra').onclick=()=>{ const f=$('#frmObra'); f.reset(); f.elements.data.value=agora().d; $('#dlgObra').showModal(); f.elements.fo.focus(); };
+$('#frmObra').elements.fo.addEventListener('input',e=>{ e.target.value=fmtFO(e.target.value); });
+$('#dlgObra').addEventListener('close',async()=>{
+  if($('#dlgObra').returnValue!=='ok') return;
+  const e=$('#frmObra').elements, fo=fmtFO(e.fo.value), nome=e.nome.value.trim();
+  if(!fo||!nome) return;
+  const ex=OBRAS.find(o=>o.fo===fo);
+  if(ex){ toast('Já existe a obra FO '+fo+'.'); const vs=visDe(ex); vs.length?abrir(vs[vs.length-1]):novaVisita(ex); return; }
+  const o=normObra({fo,nome}); OBRAS.push(o); await DB.put('obras',o); UI.obra=o.id; saveUI();
+  novaVisita(o,e.data.value);
+});
+async function novaVisita(o,data){
+  await flush(); if(!o) return;
+  const vs=visDe(o), ult=vs[vs.length-1];
+  const v=normVis({obraId:o.id, n:(vs.reduce((m,x)=>Math.max(m,+x.n||0),0))+1, data:data||agora().d});
+  if(ult) PRES.forEach(([k])=>{ if(ult.pres[k].on&&k!=='oper'&&k!=='fisc') v.pres[k]={on:false,nomes:ult.pres[k].nomes}; }); // sugere nomes, sem marcar
+  VIS.push(v); await DB.put('visitas',v); marcarDrive(v.id); abrir(v);
+  toast(`Visita n.º ${v.n} criada.`);
+}
+$('#bNovaV').onclick=()=>novaVisita(curO);
+
+/* ---------- ficha ---------- */
+async function abrir(v){
+  await flush(); pararMic(); if(!v) return; cur=v; curO=obraDe(v);
+  if(!curO){ alert('Obra desta visita não encontrada.'); return; }
+  UI.obra=curO.id; saveUI();
+  $('#vLista').classList.add('hide'); $('#vFicha').classList.remove('hide'); $('#saveInd').textContent='';
+  $$('#vFicha [data-o]').forEach(el=>{ el.value=curO[el.dataset.o]??''; });
+  $$('#vFicha [data-v]').forEach(el=>{ el.value=cur[el.dataset.v]??''; });
+  renderSeg(); renderPres(); renderAnt(); renderConfs(); renderTops(); renderPdfs(); pdfSt(''); renderFotos('fotos'); renderNav(); renderDur();
+  $$('#vFicha textarea').forEach(autoH); window.scrollTo(0,0);
+}
+function renderNav(){
+  const L=visDe(curO), i=L.indexOf(cur);
+  $('#navTit').innerHTML=`Visita n.º ${esc(cur.n)} · ${dataPT(cur.data)}<small>FO ${esc(curO.fo)} · ${esc(curO.nome)} · ${i+1} de ${L.length}</small>`;
+  $('#bPrev').disabled=i<=0; $('#bNext').disabled=i>=L.length-1;
+}
+$('#bPrev').onclick=()=>{ const L=visDe(curO), i=L.indexOf(cur); if(i>0) abrir(L[i-1]); };
+$('#bNext').onclick=()=>{ const L=visDe(curO), i=L.indexOf(cur); if(i<L.length-1) abrir(L[i+1]); };
+
+function renderSeg(){
+  $$('[data-seg]').forEach(s=>s.querySelectorAll('button').forEach(b=>b.classList.toggle('on',cur[s.dataset.seg]===b.dataset.val)));
+  $('#ncDet').classList.toggle('hide',cur.nc!=='sim');
+  $('#nConf').classList.toggle('hide',cur.nc!=='sim'); $('#nConf').textContent=cur.confs.length;
+}
+$$('[data-seg]').forEach(s=>s.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||!cur) return; const k=s.dataset.seg;
+  cur[k]=cur[k]===b.dataset.val?'':b.dataset.val;
+  if(k==='nc'&&cur.nc==='sim'&&!cur.confs.length){ cur.confs.push({desc:'',fotos:[],obs:''}); renderConfs(); }
+  renderSeg(); agendar();
+}));
+function renderPres(){
+  $('#presBox').innerHTML=PRES.map(([k,n])=>{ const p=cur.pres[k], lk=k==='fisc';
+    return `<div class="pr${p.on?' on':''}${lk?' lock':''}"><label><input type="checkbox" data-pchk="${k}"${p.on?' checked':''}${lk?' disabled':''}><span>${n}</span></label>
+      <div class="det"><input data-pn="${k}" value="${esc(p.nomes)}" placeholder="${PRES_PH[k]}"${lk?' readonly':''}></div></div>`; }).join('');
+  $('#nPres').textContent=PRES.filter(([k])=>cur.pres[k].on).length;
+}
+function renderAnt(){
+  const L=visDe(curO), i=L.indexOf(cur), ant=i>0?L[i-1]:null;
+  const T=ant?ant.tops.filter(t=>t.desc):[];
+  $('#antBox').innerHTML=T.length?`<div class="ant"><b>A verificar (definido na visita n.º ${esc(ant.n)})</b><ol>${ant.tops.map((t,i)=>t.desc?`<li><b style="display:inline;color:var(--pri2)">${topId(i)}</b> — ${esc(t.desc)}</li>`:'').join('')}</ol></div>`:'';
+}
+function renderDur(){
+  const a=min(cur.horaIni), b=min(cur.horaFim), el=$('#dur');
+  if(a==null||b==null){ el.textContent=''; el.className='dur'; return; }
+  const d=b-a; el.className='dur'+(d<0?' warn':'');
+  el.textContent=d<0?'⚠ A hora de fim é anterior à hora de início.':`Duração da visita: ${Math.floor(d/60)}h${pad(d%60)}`;
+}
+
+$('#vFicha').addEventListener('input',e=>{
+  if(!cur) return; const t=e.target, d=t.dataset;
+  if(d.o){ if(d.o==='fo') t.value=fmtFO(t.value);
+    if(d.o==='cp') t.value=fmtCP(t.value);
+    curO[d.o]=t.value; if(['fo','nome'].includes(d.o)) renderNav(); }
+  else if(d.v){ cur[d.v]=t.value; if(t.tagName==='TEXTAREA') autoH(t);
+    if(['n','data'].includes(d.v)) renderNav(); if(['horaIni','horaFim'].includes(d.v)) renderDur(); }
+  else if(d.pn){ if(d.pn==='fisc') return; cur.pres[d.pn].nomes=t.value; }
+  else if(d.leg){ fotosDe(d.leg)[+d.i].leg=t.value; }
+  else if(d.cdesc!=null){ cur.confs[+d.cdesc].desc=t.value; }
+  else if(d.cobs!=null){ cur.confs[+d.cobs].obs=t.value; autoH(t); }
+  else if(d.tdesc!=null){ cur.tops[+d.tdesc].desc=t.value; autoH(t); }
+  else return;
+  agendar();
+});
+$('#vFicha').addEventListener('change',e=>{
+  if(!cur) return; const d=e.target.dataset;
+  if(d.pchk&&d.pchk!=='fisc'){ cur.pres[d.pchk].on=e.target.checked; e.target.closest('.pr').classList.toggle('on',e.target.checked);
+    $('#nPres').textContent=PRES.filter(([k])=>cur.pres[k].on).length;
+    if(e.target.checked) setTimeout(()=>{ const i=document.querySelector(`[data-pn="${d.pchk}"]`); if(i&&!i.value) i.focus(); },30);
+    agendar(); }
+});
+$('#vFicha').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.matches('[data-zoom]')){ $('#zoom img').src=t.src; $('#zoom').style.display='flex'; return; }
+  const ag=t.closest('[data-agora]'); if(ag){ const k=ag.dataset.agora, n=agora(); cur[k]=n.h; $(`[data-v="${k}"]`).value=n.h; if(k==='horaFim') setTimeout(async()=>{ await flush(); syncDrive(); },600);
+    if(!cur.data){ cur.data=n.d; $('[data-v="data"]').value=n.d; } renderDur(); agendar(); return; }
+  const cam=t.closest('[data-cam]'); if(cam){ fotoK=cam.dataset.cam; $('#fileCam').value=''; $('#fileCam').click(); return; }
+  const gal=t.closest('[data-gal]'); if(gal){ fotoK=gal.dataset.gal; $('#fileGal').value=''; $('#fileGal').click(); return; }
+  const df=t.closest('[data-delfoto]'); if(df){ if(!confirm('Remover esta foto?')) return; fotosDe(df.dataset.delfoto).splice(+df.dataset.i,1); renderFotos(df.dataset.delfoto); agendar(); return; }
+  const m=t.closest('[data-mic]'); if(m){ toggleMic(m); return; }
+  const dt=t.closest('[data-deltop]'); if(dt){ const i=+dt.dataset.deltop;
+    if(cur.tops[i].desc&&!confirm(`Eliminar ${topId(i)}? Os restantes são renumerados.`)) return;
+    cur.tops.splice(i,1); renderTops(); agendar(); return; }
+  const dc=t.closest('[data-delconf]'); if(dc){ const i=+dc.dataset.delconf, c=cur.confs[i];
+    if((c.desc||c.obs||c.fotos.length)&&!confirm(`Eliminar ${confId(i)}? As restantes são renumeradas.`)) return;
+    cur.confs.splice(i,1); if(!cur.confs.length) cur.nc=''; renderConfs(); renderSeg(); agendar(); return; }
+});
+$('#zoom').addEventListener('click',()=>$('#zoom').style.display='none');
+
+/* ---------- fotos (câmara / inserir) ---------- */
+let fotoK=null;
+function comprimir(file){ return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
+  img.onload=()=>{ const s=Math.min(1,1600/Math.max(img.width,img.height)); const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',0.75)); };
+  img.onerror=rej; img.src=url; }); }
+const fotosDe=k=>k==='fotos'?cur.fotos:cur.confs[+k.split(':')[1]].fotos;
+function renderFotos(k){
+  const box=document.querySelector(`[data-fotos="${k}"]`); if(!box) return;
+  box.innerHTML=fotosDe(k).map((f,i)=>`<div class="foto"><div class="im"><img src="${f.src}" data-zoom alt=""><button type="button" data-delfoto="${k}" data-i="${i}">✕</button></div><input data-leg="${k}" data-i="${i}" value="${esc(f.leg)}" placeholder="Legenda ${i+1}"></div>`).join('')
+    +`<div class="addf"><button type="button" data-cam="${k}">📷 Câmara</button><button type="button" data-gal="${k}">🖼 Inserir</button></div>`;
+  if(k==='fotos') $('#nFotos').textContent=cur.fotos.length;
+}
+async function addFotos(files){
+  if(!cur||!fotoK||!files.length) return; let n=0;
+  for(const file of files){ try{ fotosDe(fotoK).push({src:await comprimir(file),leg:''}); n++; }catch(err){} }
+  if(n<files.length) alert('Não foi possível ler '+(files.length-n)+' imagem(ns).');
+  renderFotos(fotoK); agendar();
+}
+$('#fileCam').addEventListener('change',e=>addFotos([...e.target.files]));
+
+/* ---------- não conformidades CONF01, CONF02… ---------- */
+const confId=i=>'CONF'+pad(i+1);
+function renderConfs(){
+  $('#confBox').innerHTML=cur.confs.map((c,i)=>`<div class="conf"><div class="conf-h"><b>${confId(i)}</b><i>${c.fotos.length?c.fotos.length+' foto(s)':''}</i><button type="button" class="del small" data-delconf="${i}">✕</button></div>
+    <label>Descrição</label><input data-cdesc="${i}" value="${esc(c.desc)}" placeholder="Descrição da não conformidade">
+    <h3>Registo fotográfico</h3><div class="fotos" data-fotos="conf:${i}"></div>
+    <div class="lbl" style="margin-top:12px"><label>Observações</label><button type="button" class="mic" data-mic>🎤</button></div>
+    <textarea data-cobs="${i}" rows="3" placeholder="Localização, causa, medidas corretivas, prazo…">${esc(c.obs)}</textarea></div>`).join('');
+  cur.confs.forEach((c,i)=>renderFotos('conf:'+i));
+  $$('#confBox textarea').forEach(autoH); if(!SR) $$('#confBox .mic').forEach(b=>b.classList.add('hide'));
+  $('#nConf').textContent=cur.confs.length;
+}
+/* ---------- tópicos a verificar TOP01, TOP02… ---------- */
+const topId=i=>'TOP'+pad(i+1);
+function renderTops(){
+  $('#topBox').innerHTML=cur.tops.map((t,i)=>`<div class="conf top"><div class="conf-h"><b>${topId(i)}</b><button type="button" class="del small" data-deltop="${i}">✕</button></div>
+    <div class="lbl"><label>Descrição</label><button type="button" class="mic" data-mic>🎤</button></div>
+    <textarea data-tdesc="${i}" rows="2" placeholder="O que verificar na próxima visita">${esc(t.desc)}</textarea></div>`).join('');
+  $$('#topBox textarea').forEach(ta=>{ ta.style.minHeight='60px'; autoH(ta); }); if(!SR) $$('#topBox .mic').forEach(b=>b.classList.add('hide'));
+  $('#nTop').textContent=cur.tops.length?'('+cur.tops.length+')':'';
+}
+$('#bAddTop').onclick=()=>{ cur.tops.push({desc:''}); renderTops(); agendar(); const L=$$('#topBox textarea'); L[L.length-1].focus(); };
+$('#bAddConf').onclick=()=>{ cur.confs.push({desc:'',fotos:[],obs:''}); renderConfs(); renderSeg(); agendar();
+  const L=$$('#confBox [data-cdesc]'); L[L.length-1].focus(); };
+$('#fileGal').addEventListener('change',e=>addFotos([...e.target.files]));
+
+function autoH(ta){ if(!ta) return; ta.style.height='auto'; ta.style.height=Math.max(ta.dataset.tdesc!=null?60:100,ta.scrollHeight+2)+'px'; }
+
+/* ---------- ditado por voz (pt-PT; requer HTTPS, ex. GitHub Pages) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, recBtn=null;
+if(!SR) $$('.mic').forEach(b=>b.classList.add('hide'));
+function pararMic(){ if(rec){ try{rec.stop();}catch(e){} } }
+function toggleMic(btn){
+  if(rec){ const mesmo=recBtn===btn; pararMic(); if(mesmo) return; }
+  const ta=btn.closest('.lbl').nextElementSibling.tagName==='TEXTAREA'?btn.closest('.lbl').nextElementSibling:btn.closest('.lbl').parentElement.querySelector('textarea'); if(!ta) return;
+  rec=new SR(); rec.lang='pt-PT'; rec.continuous=true; rec.interimResults=false; recBtn=btn; btn.classList.add('on');
+  rec.onresult=ev=>{ let txt=''; for(let i=ev.resultIndex;i<ev.results.length;i++) if(ev.results[i].isFinal) txt+=ev.results[i][0].transcript;
+    txt=txt.trim(); if(!txt) return; const v=ta.value; ta.value=v+(v&&!/\s$/.test(v)?' ':'')+txt.charAt(0).toUpperCase()+txt.slice(1);
+    ta.dispatchEvent(new Event('input',{bubbles:true})); };
+  rec.onerror=ev=>{ if(ev.error==='not-allowed') toast('Microfone bloqueado — a app tem de abrir por https.'); };
+  rec.onend=()=>{ btn.classList.remove('on'); rec=null; recBtn=null; };
+  try{ rec.start(); }catch(e){ btn.classList.remove('on'); rec=null; }
+}
+
+/* ---------- impressão ---------- */
+const presTxt=v=>PRES.filter(([k])=>v.pres[k].on).map(([k,n])=>`<tr><th>${n}</th><td>${esc(v.pres[k].nomes)||'—'}</td></tr>`).join('');
+const fotosHtml=(L,tit)=>L.length?`<div class="pf">${L.map((f,i)=>`<figure><img src="${f.src}" alt=""><figcaption>${tit} ${i+1}${f.leg?' · '+esc(f.leg):''}</figcaption></figure>`).join('')}</div>`:'';
+function htmlVisita(v){
+  const o=obraDe(v)||normObra();
+  const g=[o.gEmpresa,o.gResp,o.gTel,o.gEmail].filter(Boolean).map(esc).join(' · ');
+  return `<div class="ficha"><div class="lh"><div><b style="color:#1f4e5a;font-size:11pt">SEEN</b><br>Diagnóstico, Consultoria e Fiscalização</div><div style="text-align:right">Relatório de visita de fiscalização<br>FO ${esc(o.fo)} · ${dataPT(v.data)}</div></div>
+    <h1>Visita n.º ${esc(v.n)} · ${esc(o.nome)}</h1>
+    <table><tr><th>FO N.º</th><td>${esc(o.fo)}</td><th>Visita n.º</th><td>${esc(v.n)}</td></tr>
+      <tr><th>Obra</th><td colspan="3">${esc(o.nome)}</td></tr>
+      <tr><th>Localização</th><td colspan="3">${esc(morada(o))||'—'}</td></tr>
+      <tr><th>Gestão</th><td colspan="3">${g||'—'}</td></tr>
+      <tr><th>Data</th><td>${dataPT(v.data)}</td><th>Cond. meteorológicas</th><td>${esc(v.meteo)||'—'}</td></tr>
+      <tr><th>Hora de início</th><td>${esc(v.horaIni)||'—'}</td><th>Hora de fim</th><td>${esc(v.horaFim)||'—'}</td></tr></table>
+    <h3>Presenças na visita</h3>${presTxt(v)?`<table>${presTxt(v)}</table>`:'<p>—</p>'}
+    <h3>Ponto da situação</h3><table class="pt"><tr><td class="o">${esc(v.ponto)||'—'}</td></tr>${v.pdfs.length?`<tr><td><b>Anexos:</b> ${v.pdfs.map((f,i)=>`A${i+1} – ${esc(f.nome)}${f.pags?' ('+f.pags+' pág.)':''}`).join(' · ')}</td></tr>`:''}</table>
+    <h3>Não conformidades registadas: ${v.nc==='sim'?'SIM ('+v.confs.length+')':v.nc==='nao'?'NÃO':'—'}</h3>
+    ${v.nc==='sim'?v.confs.map((c,i)=>`<table class="pt" style="margin-top:6px"><tr><td style="background:#fbe7e5"><b>${confId(i)}</b>${c.desc?' — '+esc(c.desc):''}</td></tr>${c.obs?`<tr><td class="o">${esc(c.obs)}</td></tr>`:''}</table>${fotosHtml(c.fotos,confId(i)+' · foto')}`).join(''):''}
+    ${v.fotos.length?`<h3>Registo fotográfico da fiscalização</h3>${fotosHtml(v.fotos,'Foto')}`:''}
+    <h3>Próxima visita</h3><table><tr><th>Data</th><td>${dataPT(v.proxData)||'—'}</td><th>Hora</th><td>${esc(v.proxHora)||'—'}</td></tr></table>
+    <h3>Tópicos a verificar na próxima visita</h3>${v.tops.filter(t=>t.desc).length?`<table>${v.tops.map((t,i)=>t.desc?`<tr><th style="width:12%">${topId(i)}</th><td class="o">${esc(t.desc)}</td></tr>`:'').join('')}</table>`:'<p>—</p>'}
+    <div class="ass"><div>A Fiscalização</div></div>
+    <div class="rod">FO ${esc(o.fo)} · ${esc(o.nome)} — relatório gerado pela app FISGA</div>
+    ${v.pdfs.length?`<div class="anx" data-anx="${v.id}"></div>`:''}</div>`;
+}
+async function imprimir(L){
+  await flush(); if(!L.length){ toast('Sem visitas para imprimir.'); return; }
+  $('#print').innerHTML=L.map(htmlVisita).join('');
+  for(const box of $$('#print [data-anx]')){ const v=VIS.find(x=>x.id===box.dataset.anx); let h='';
+    for(const [i,f] of v.pdfs.entries()){
+      try{ toast('A preparar o anexo '+f.nome+'…'); const r=await paginasPdf(f,PDF_PAGS_PRINT);
+        h+=r.imgs.map((src,k)=>`<figure><img src="${src}" alt=""><figcaption>Anexo A${i+1} – ${esc(f.nome)} · pág. ${k+1}/${r.total}${r.total>r.imgs.length&&k===r.imgs.length-1?` (impressas as primeiras ${r.imgs.length})`:''}</figcaption></figure>`).join(''); }
+      catch(err){ h+=`<p>Anexo A${i+1} – ${esc(f.nome)}: não foi possível incluir (${esc(err.message||err)}).</p>`; } }
+    box.innerHTML=h; }
+  const imgs=$$('#print img');
+  if(imgs.length) toast('A preparar '+imgs.length+' foto(s) para impressão…');
+  await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));
+  setTimeout(()=>window.print(),300);
+}
+$('#bPrintV').onclick=()=>imprimir([cur]);
+$('#bPrintObra').onclick=()=>imprimir(visDe(curO));
+$('#bDelV').onclick=async()=>{ if(!confirm(`Eliminar a visita n.º ${cur.n}?`)) return;
+  clearTimeout(saveT); saveT=null; if(curO) await DB.put('obras',curO);
+  await DB.del('visitas',cur.id); VIS.splice(VIS.indexOf(cur),1); cur=null; mostrarLista(); };
+
+/* ---------- CSV ---------- */
+function exportCSV(o){
+  const L=visDe(o), q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const H=['FO N.º','Obra','Rua','N.º','Localidade','Código postal','Gestão - empresa','Gestão - responsável','Gestão - telefone','Gestão - email',
+    'Visita n.º','Data','Hora de início','Condições meteorológicas',...PRES.map(p=>'Presença: '+p[1]),'Ponto da situação','Anexos PDF','Não conformidades','N.º NC','Descrição / observações NC','N.º fotos NC','N.º fotos fiscalização','Próxima visita - data','Próxima visita - hora','Tópicos a verificar','Hora fim'];
+  const rows=L.map(v=>[o.fo,o.nome,o.rua,o.num,o.localidade,o.cp,o.gEmpresa,o.gResp,o.gTel,o.gEmail,
+    v.n,dataPT(v.data),v.horaIni,v.meteo,...PRES.map(([k])=>v.pres[k].on?(v.pres[k].nomes||'X'):''),v.ponto,v.pdfs.map(f=>f.nome).join(' | '),v.nc==='sim'?'SIM':v.nc==='nao'?'NÃO':'',v.nc==='sim'?v.confs.length:'',v.nc==='sim'?v.confs.map((c,i)=>confId(i)+': '+c.desc+(c.obs?' ['+c.obs+']':'')).join(' | '):'',v.confs.reduce((a,c)=>a+c.fotos.length,0),v.fotos.length,dataPT(v.proxData),v.proxHora,v.tops.filter(t=>t.desc).map((t,i)=>topId(i)+': '+t.desc).join(' | '),v.horaFim].map(q).join(';'));
+  descarregar(`FISGA_FO${o.fo.replace(/[^\w.-]+/g,'_')}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
+}
+
+/* ---------- configuração ---------- */
+let CFG={url:DRIVE_URL_DEF,token:DRIVE_TOKEN_DEF};
+try{Object.assign(CFG,JSON.parse(localStorage.getItem('fisga_cfg')||'{}'));}catch(e){}
+if(!CFG.url) CFG.url=DRIVE_URL_DEF;
+if(CFG.token==='seen-fisga') CFG.token='';
+// 1.ª vez com o Drive ligado neste aparelho: arquivar tudo o que já existe
+try{ if(CFG.url&&!localStorage.getItem('fisga_drive_ini')){ localStorage.setItem('fisga_drive_ini','1'); window._driveIni=true; } }catch(e){}
+$('#bCfg').onclick=()=>{ const e=$('#frmCfg').elements; e.url.value=CFG.url; e.token.value=CFG.token; $('#dlgCfg').showModal(); };
+$('#dlgCfg').addEventListener('close',()=>{ if($('#dlgCfg').returnValue!=='ok') return; const e=$('#frmCfg').elements;
+  const novoUrl=e.url.value.trim()&&e.url.value.trim()!==CFG.url;
+  CFG={url:e.url.value.trim(),token:e.token.value.trim()};
+  if(novoUrl){ VIS.forEach(v=>DIRTY.add(v.id)); saveDirty(); setTimeout(()=>syncDrive(true),300); } // arquiva tudo o que já existe
+  try{localStorage.setItem('fisga_cfg',JSON.stringify(CFG));}catch(x){} indDrive(); toast('Configuração guardada.'); });
+$('#bTestDrive').onclick=async()=>{ const u=$('#frmCfg').elements.url.value.trim(); if(!u){toast('Preencha o endereço.');return;}
+  try{ const r=await fetch(u); const j=await lerResposta(r); alert(j.ok?'Ligação OK.\nPasta: '+j.pasta:'Erro: '+(j.erro||'?')); }
+  catch(e){ alert('Sem ligação ao script: '+e.message+'\n\nConfirme: o endereço termina em /exec; na implementação, "Executar como: Eu" e "Quem tem acesso: Qualquer pessoa".'); } };
+async function lerResposta(r){ const t=await r.text(); try{ return JSON.parse(t); }catch(e){
+  throw new Error(/accounts\.google|ServiceLogin|<html/i.test(t)?'o script pede login — na implementação escolha "Quem tem acesso: Qualquer pessoa"':'resposta inválida do script'); } }
+
+/* ---------- arquivo automático no Drive (Apps Script) ----------
+   Um ficheiro por visita: FISGA_FO0000.000_V01.json, dentro da subpasta da obra em FISCALIZAÇÃO DE OBRAS.PROCESSOS.
+   Cada ficheiro contém a obra + a visita, e serve para Restaurar noutro aparelho. */
+let DIRTY=new Set(), syncing=false, lastSync='';
+try{ DIRTY=new Set(JSON.parse(localStorage.getItem('fisga_dirty')||'[]')); }catch(e){}
+const saveDirty=()=>{try{localStorage.setItem('fisga_dirty',JSON.stringify([...DIRTY]));}catch(e){}};
+function marcarDrive(id){ if(!DIRTY.has(id)){ DIRTY.add(id); saveDirty(); } indDrive(); }
+function indDrive(msg,ko){ const el=$('#driveInd'); if(CFG.url&&!CFG.token){ el.className='off'; el.textContent='☁ falta o código do Drive'; el.onclick=()=>$('#bCfg').click(); return; } if(!CFG.url){ el.className='off'; el.textContent='☁ Drive não configurado'; el.onclick=()=>$('#bCfg').click(); return; } el.onclick=()=>syncDrive(true);
+  el.className=ko?'ko':''; el.textContent=msg||(DIRTY.size?`☁ ${DIRTY.size} por enviar`:(lastSync?'☁ ✓ '+lastSync:'☁ Drive')); }
+async function syncDrive(manual){
+  if(!CFG.url||!CFG.token){ if(manual) toast('Introduza o código de acesso do Drive em ⚙.'); indDrive(); return; }
+  if(syncing||!DIRTY.size){ if(manual&&!DIRTY.size) toast('Tudo arquivado no Drive.'); return; }
+  if(!navigator.onLine){ indDrive('☁ sem rede',true); return; }
+  syncing=true; let ok=0, erro='';
+  for(const id of [...DIRTY]){
+    if(cur&&cur.id===id&&saveT) continue;          // ainda a ser editada → fica para a próxima
+    const v=VIS.find(x=>x.id===id); if(!v){ DIRTY.delete(id); continue; }
+    const o=obraDe(v); if(!o){ DIRTY.delete(id); continue; }
+    indDrive(`☁ a enviar V${v.n}…`);
+    try{
+      const r=await fetch(CFG.url,{method:'POST',body:JSON.stringify({token:CFG.token,pasta:PASTA_DRIVE,
+        obra:`FO ${o.fo} - ${o.nome}`.trim(),fo:o.fo,nome:`FISGA_FO${o.fo}_V${pad(v.n)}.json`,
+        conteudo:JSON.stringify({app:'FISGA',versao:VERSAO,obras:[o],visitas:[v]})})});
+      const j=await lerResposta(r); if(!j.ok) throw new Error(j.erro||'erro');
+      DIRTY.delete(id); ok++;
+    }catch(e){ erro=e.message; break; }
+  }
+  saveDirty(); syncing=false;
+  if(ok) lastSync=agora().h;
+  if(erro){ indDrive('☁ falhou',true); if(manual) toast('Drive: '+erro); }
+  else { indDrive(); if(manual) toast(ok?`${ok} visita(s) arquivada(s) no Drive.`:'Tudo arquivado no Drive.'); }
+}
+setInterval(()=>syncDrive(),180000);
+window.addEventListener('online',()=>syncDrive());
+
+/* ---------- PDF anexos ao Ponto da situação ----------
+   Guardados na visita como {nome,tam,pags,data(dataURL)}; abrem no leitor do aparelho; na impressão as páginas
+   são incluídas como anexo (pdf.js, carregado só quando é preciso). */
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const PDF_MAX=15*1048576, PDF_PAGS_PRINT=40;
+let _pdfjs=null;
+function pdfjs(){ if(_pdfjs) return _pdfjs;
+  _pdfjs=new Promise((res,rej)=>{ if(window.pdfjsLib) return res(window.pdfjsLib);
+    const sc=document.createElement('script'); sc.src=PDFJS+'pdf.min.js';
+    sc.onload=()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js'; res(pdfjsLib); };
+    sc.onerror=()=>{ _pdfjs=null; rej(new Error('não foi possível carregar o leitor de PDF (sem internet?)')); };
+    document.head.appendChild(sc); });
+  return _pdfjs; }
+const b64bytes=d=>{ const s=atob(d.split(',')[1]); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; };
+async function docPdf(d){ const L=await pdfjs(); return L.getDocument({data:b64bytes(d)}).promise; }
+const mb=n=>n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toLocaleString('pt-PT',{maximumFractionDigits:1})+' MB';
+function pdfSt(t){ const el=$('#pdfSt'); el.textContent=t||''; el.classList.toggle('hide',!t); }
+function renderPdfs(){
+  $('#pdfBox').innerHTML=cur.pdfs.map((f,i)=>`<div class="pdf"><span>📄</span><div class="n">${esc(f.nome)}<small>${f.pags?f.pags+' pág. · ':''}${mb(f.tam)}</small></div>
+    <button type="button" class="sec small" data-pdfopen="${i}">Abrir</button><button type="button" class="sec small" data-pdftxt="${i}" title="Copiar o texto do PDF para o Ponto da situação">Texto → Ponto</button><button type="button" class="del small" data-pdfdel="${i}">✕</button></div>`).join('');
+}
+$('#bPdf').onclick=()=>{ $('#filePdf').value=''; $('#filePdf').click(); };
+$('#filePdf').addEventListener('change',async e=>{
+  const files=[...e.target.files]; if(!files.length||!cur) return; const alvo=cur; let n=0;
+  for(const f of files){
+    if(!/pdf$/i.test(f.type)&&!/\.pdf$/i.test(f.name)){ toast(f.name+' não é um PDF.'); continue; }
+    if(f.size>PDF_MAX){ alert(`${f.name} tem ${mb(f.size)} — o limite é ${mb(PDF_MAX)}. Reduza o PDF e tente de novo.`); continue; }
+    pdfSt('A anexar '+f.name+'…');
+    const data=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
+    let pags=null; try{ pags=(await docPdf(data)).numPages; }catch(err){}
+    alvo.pdfs.push({nome:f.name,tam:f.size,pags,data}); n++;
+  }
+  pdfSt(''); if(cur===alvo){ renderPdfs(); agendar(); } else { await DB.put('visitas',alvo); marcarDrive(alvo.id); }
+  if(n) toast(n+' PDF anexado(s) ao Ponto da situação.');
+});
+$('#pdfBox').addEventListener('click',async e=>{
+  const b=e.target.closest('button'); if(!b||!cur) return; const d=b.dataset;
+  if(d.pdfopen!=null){ const f=cur.pdfs[+d.pdfopen]; const u=URL.createObjectURL(new Blob([b64bytes(f.data)],{type:'application/pdf'}));
+    const w=window.open(u,'_blank'); if(!w){ const a=document.createElement('a'); a.href=u; a.download=f.nome; a.click(); } setTimeout(()=>URL.revokeObjectURL(u),60000); }
+  else if(d.pdfdel!=null){ const f=cur.pdfs[+d.pdfdel]; if(!confirm('Remover o anexo '+f.nome+'?')) return; cur.pdfs.splice(+d.pdfdel,1); renderPdfs(); agendar(); }
+  else if(d.pdftxt!=null){ const f=cur.pdfs[+d.pdftxt], alvo=cur; b.disabled=true;
+    try{ pdfSt('A ler o texto de '+f.nome+'…'); const doc=await docPdf(f.data); let t='';
+      for(let i=1;i<=doc.numPages;i++){ const c=await (await doc.getPage(i)).getTextContent();
+        t+=c.items.map(it=>it.str+(it.hasEOL?'\n':'')).join('').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim()+'\n\n'; }
+      t=t.trim(); if(!t) throw new Error('o PDF não tem texto (é uma digitalização/imagem)');
+      alvo.ponto=(alvo.ponto?alvo.ponto.replace(/\s+$/,'')+'\n\n':'')+`[${f.nome}]\n`+t;
+      if(cur===alvo){ const ta=$('[data-v="ponto"]'); ta.value=alvo.ponto; autoH(ta); agendar(); }
+      toast('Texto do PDF inserido no Ponto da situação.');
+    }catch(err){ alert('Não foi possível ler o texto: '+(err.message||err)); }
+    pdfSt(''); b.disabled=false; }
+});
+async function paginasPdf(f,max){ const doc=await docPdf(f.data), out=[], n=Math.min(doc.numPages,max);
+  for(let i=1;i<=n;i++){ const pg=await doc.getPage(i), vp=pg.getViewport({scale:1.6}), c=document.createElement('canvas');
+    c.width=vp.width; c.height=vp.height; const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
+    await pg.render({canvasContext:ctx,viewport:vp}).promise; out.push(c.toDataURL('image/jpeg',0.8)); }
+  return {imgs:out,total:doc.numPages}; }
+
+/* ---------- arranque ---------- */
+$('#bLista').onclick=()=>mostrarLista();
+document.addEventListener('visibilitychange',async()=>{ if(document.visibilityState==='hidden'){ await flush(); syncDrive(); } });
+DB.open().then(()=>Promise.all([DB.all('obras'),DB.all('visitas')])).then(([o,v])=>{ OBRAS=o.map(normObra); VIS=v.map(normVis); if(window._driveIni){ VIS.forEach(x=>DIRTY.add(x.id)); saveDirty(); } indDrive(); mostrarLista(); })
+  .catch(e=>{ document.body.innerHTML='<p style="padding:20px">Erro ao abrir a base de dados local: '+e+'</p>'; });
+</script>
+</body>
+</html>
