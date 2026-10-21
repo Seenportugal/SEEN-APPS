@@ -169,7 +169,7 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 
 <header>
   <div class="hrow">
-    <h1>INFRAPAT <small>Patologias no interior das frações · SEEN</small></h1>
+    <h1>INFRAPAT <small>Patologias no interior das frações · SEEN</small> <span id="verApp" style="margin-left:6px;font-size:12px;font-weight:400;opacity:.75;letter-spacing:0;white-space:nowrap"></span></h1>
     <span id="saveInd"></span>
     <button class="hdr" id="bLista">☰ Lista</button>
     <button class="hdr" id="bImportVisit" title="Importar uma ficha VISIT (.html) ou backup VISIT (.json) — cria uma ficha por fração">📥 Importar VISIT</button>
@@ -279,8 +279,12 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
    Dados guardados neste browser (IndexedDB "SEEN_INFRAPAT").
    Importa fichas VISIT (.html com <script id="visit-data">) ou backups VISIT (.json).
    ============================================================ */
-const VERSAO='1.5.2';
-try{document.querySelector('header h1 small').textContent+=' · v'+VERSAO;}catch(e){}
+const VERSAO='1.5.3';
+try{document.getElementById('verApp').textContent='v'+VERSAO;}catch(e){}   /* versão no banner (sempre visível): lida de VERSAO */
+/* v1.5.3: todos os ficheiros exportados levam o n.º do processo no nome */
+const procNome = p => String(p||'').trim().replace(/[^\w.-]+/g,'_') || 'semProcesso';
+const procLista = L => { const f=[...new Set(L.map(x=>String(x.processo||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt',{numeric:true}));
+  return !f.length?'semProcesso':(f.length<=3?f:f.slice(0,3)).map(procNome).join('+')+(f.length>3?'_e_mais_'+(f.length-3):''); };
 const PATS=[
   ['inf_ext','Infiltrações com origem no exterior'],
   ['condens','Condensações superficiais / fungos / bolores'],
@@ -410,7 +414,7 @@ async function _partilhar(f){
 }
 async function _backup(){ await flush(); const L=UI.proc?FICHAS.filter(f=>f.processo===UI.proc):FICHAS;
   if(!L.length){toast('Nada para exportar.');return;}
-  const nome=`INFRAPAT_${(UI.proc||'todos').replace(/[^\w.-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
+  const nome=`INFRAPAT_${UI.proc?procNome(UI.proc):procLista(L)+'_todos'}_${agora().d}_${agora().h.replace(':','h')}.json`;
   const txt=JSON.stringify({app:'INFRAPAT',versao:VERSAO,fichas:L});
   // 1) computador: "Guardar como"
   if(window.showSaveFilePicker){
@@ -598,7 +602,14 @@ async function imprimir(L){
   const imgs=[...document.querySelectorAll('#print img')];
   if(imgs.length) toast('A preparar '+imgs.length+' foto(s) para impressão…');
   await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));
-  setTimeout(()=>window.print(),300);
+  /* nome sugerido para o PDF: INFRAPAT_<processo>_Fr_<fração>_<data> (uma ficha) ou INFRAPAT_<processo>_fichas_<data> */
+  const tit=document.title, f0=L[0];
+  document.title = L.length===1
+    ? `INFRAPAT_${procNome(f0.processo)}_Fr_${procNome(frLetra(f0.fracao))}_${f0.dia||agora().d}`
+    : `INFRAPAT_${procLista(L)}_fichas_${agora().d}`;
+  const repor=()=>{ document.title=tit; window.removeEventListener('afterprint',repor); };
+  window.addEventListener('afterprint',repor);
+  setTimeout(()=>{ window.print(); setTimeout(repor,1500); },300);
 }
 $('#bPrintFicha').onclick=()=>imprimir([cur]);
 $('#bPrintProc').onclick=()=>imprimir(irmas());
@@ -612,7 +623,7 @@ function exportCSV(proc){
   const rows=L.map(f=>[f.processo,f.edificio,f.fracao,f.andar,f.tipo,f.proprietario,f.presente==='sim'?'SIM':f.presente==='nao'?'NÃO':'',dataPT(f.dia),f.hora,
     ...PATS.map(([k])=>f.pats[k]?'X':''),f.pats.outro?f.patOutro:'',PATS.filter(([k])=>f.pats[k]&&(f.pats[k].obs||locTxt(f.pats[k]))).map(([k])=>patNome(f,k)+(locTxt(f.pats[k])?' ['+locTxt(f.pats[k])+']':'')+(f.pats[k].obs?': '+f.pats[k].obs:'')).join(' | '),
     ...ENS.map(([k])=>f.ensaios[k]?'X':''),f.ensaios.outro?f.ensaioOutro:'',f.obs].map(q).join(';'));
-  descarregar(`INFRAPAT_${proc.replace(/[^\w.-]+/g,'_')}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
+  descarregar(`INFRAPAT_${procNome(proc)}_${agora().d}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
 }
 
 /* ---------- app instalável (PWA) ---------- */
