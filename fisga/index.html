@@ -192,7 +192,7 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
 
 <header>
   <div class="hrow">
-    <h1>FISGA <small>Fiscalização, Gestão e Acompanhamento de Obra · SEEN</small></h1>
+    <h1>FISGA <small>Fiscalização, Gestão e Acompanhamento de Obra · SEEN</small> <span id="verApp" style="margin-left:6px;font-size:12px;font-weight:400;opacity:.75;letter-spacing:0;white-space:nowrap"></span></h1>
     <span id="saveInd"></span>
     <span id="driveInd"></span>
     <button class="hdr" id="bLista">☰ Lista</button>
@@ -358,7 +358,12 @@ dialog h3{margin:0 0 12px;color:var(--pri)}
             fotos[{src,leg}], proxData, proxHora, tops:[{desc}], horaFim, criado, atualizado}
    Metodologia igual à INFRAPAT: grava sozinho, backup .json para o Drive, impressão A4, CSV.
    ============================================================ */
-const VERSAO='1.6';
+const VERSAO='1.7.1';
+document.getElementById('verApp').textContent='v'+VERSAO;   /* versão no banner: lida sempre de VERSAO */
+/* v1.7: todos os ficheiros exportados levam o n.º da obra (FO) no nome */
+const foNome = fo => { const f=String(fo||'').trim(); return f?('FO'+f).replace(/[^\w.-]+/g,'_'):'semFO'; };
+const foLista = O => { const f=[...new Set(O.map(o=>String(o.fo||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt',{numeric:true}));
+  return !f.length?'semFO':f.length<=3?f.map(x=>'FO'+x).join('+'):f.slice(0,3).map(x=>'FO'+x).join('+')+'_e_mais_'+(f.length-3); };
 const FISCAL='PEDRO GOMES';           // presença fixa da Fiscalização
 const DRIVE_URL_DEF='https://script.google.com/macros/s/AKfycby0dx2so_OQVGSJCyjj0AF3q8yQwsNarjgn0znIfne4lEcW6v2fL36EiaS4t6SW5H8/exec';               // endereço do Apps Script (pode ficar aqui para todos os aparelhos)
 const DRIVE_TOKEN_DEF='';               // o código de acesso NÃO fica no ficheiro (repositório público): é pedido em ⚙ uma vez por aparelho
@@ -444,8 +449,8 @@ $('#bBackup').onclick=async()=>{ await flush();
     VIS.filter(v=>ids.has(v.obraId)).forEach(v=>DIRTY.add(v.id)); saveDirty(); await syncDrive(true); return; }
   const O=UI.obra?OBRAS.filter(o=>o.id===UI.obra):OBRAS; const ids=new Set(O.map(o=>o.id)); const V=VIS.filter(v=>ids.has(v.obraId));
   if(!O.length){toast('Nada para exportar.');return;}
-  const tag=UI.obra&&O[0]?('FO'+O[0].fo):'todas';
-  const nome=`FISGA_${tag.replace(/[^\w.-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
+  const tag=UI.obra&&O[0]?foNome(O[0].fo):foLista(O)+'_todas';
+  const nome=`FISGA_${tag.replace(/[^\w.+-]+/g,'_')}_${agora().d}_${agora().h.replace(':','h')}.json`;
   const txt=JSON.stringify({app:'FISGA',versao:VERSAO,obras:O,visitas:V});
   if(_mobile&&navigator.share){ const f=_ficheiroPartilhavel(nome,txt);
     if(f){ try{ await navigator.share({files:[f],title:nome}); toast('Backup enviado. No Drive, confirme a pasta e toque em Guardar.'); return; }
@@ -724,7 +729,14 @@ async function imprimir(L){
   const imgs=$$('#print img');
   if(imgs.length) toast('A preparar '+imgs.length+' foto(s) para impressão…');
   await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve()));
-  setTimeout(()=>window.print(),300);
+  /* nome sugerido para o PDF: FISGA_FO<n.º>_V01_<data> (uma visita) ou FISGA_FO<n.º>_visitas_<data> (obra) */
+  const o=obraDe(L[0])||{}, tit=document.title;
+  document.title = L.length===1
+    ? `FISGA_${foNome(o.fo)}_V${pad(L[0].n||1)}_${L[0].data||agora().d}`
+    : `FISGA_${foNome(o.fo)}_visitas_${agora().d}`;
+  const repor=()=>{ document.title=tit; window.removeEventListener('afterprint',repor); };
+  window.addEventListener('afterprint',repor);
+  setTimeout(()=>{ window.print(); setTimeout(repor,1500); },300);
 }
 $('#bPrintV').onclick=()=>imprimir([cur]);
 $('#bPrintObra').onclick=()=>imprimir(visDe(curO));
@@ -739,7 +751,7 @@ function exportCSV(o){
     'Visita n.º','Data','Hora de início','Condições meteorológicas',...PRES.map(p=>'Presença: '+p[1]),'Ponto da situação','Anexos PDF','Não conformidades','N.º NC','Descrição / observações NC','N.º fotos NC','N.º fotos fiscalização','Próxima visita - data','Próxima visita - hora','Tópicos a verificar','Hora fim'];
   const rows=L.map(v=>[o.fo,o.nome,o.rua,o.num,o.localidade,o.cp,o.gEmpresa,o.gResp,o.gTel,o.gEmail,
     v.n,dataPT(v.data),v.horaIni,v.meteo,...PRES.map(([k])=>v.pres[k].on?(v.pres[k].nomes||'X'):''),v.ponto,v.pdfs.map(f=>f.nome).join(' | '),v.nc==='sim'?'SIM':v.nc==='nao'?'NÃO':'',v.nc==='sim'?v.confs.length:'',v.nc==='sim'?v.confs.map((c,i)=>confId(i)+': '+c.desc+(c.obs?' ['+c.obs+']':'')).join(' | '):'',v.confs.reduce((a,c)=>a+c.fotos.length,0),v.fotos.length,dataPT(v.proxData),v.proxHora,v.tops.filter(t=>t.desc).map((t,i)=>topId(i)+': '+t.desc).join(' | '),v.horaFim].map(q).join(';'));
-  descarregar(`FISGA_FO${o.fo.replace(/[^\w.-]+/g,'_')}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
+  descarregar(`FISGA_${foNome(o.fo)}_${agora().d}.csv`,'﻿'+H.map(q).join(';')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8');
 }
 
 /* ---------- configuração ---------- */
