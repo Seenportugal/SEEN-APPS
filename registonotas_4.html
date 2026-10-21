@@ -1,0 +1,1111 @@
+<title>BLABLA · SEEN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --paper: #EEF0E7;
+    --surface: #FFFFFF;
+    --ink: #202A22;
+    --ink-soft: #5B6459;
+    --accent: #1F4D46;
+    --accent-strong: #163933;
+    --accent-contrast: #F4F7F1;
+    --brass: #8A6B2E;
+    --brass-bg: #F4E9CE;
+    --rule: #D7DAC9;
+    --danger: #8C3B2E;
+    --danger-bg: #F3E1DB;
+    --shadow: 0 1px 2px rgba(32, 42, 34, 0.06), 0 4px 14px rgba(32, 42, 34, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #171B16;
+      --surface: #1F241D;
+      --ink: #E7EAE0;
+      --ink-soft: #9AA394;
+      --accent: #6FBFAE;
+      --accent-strong: #8ED4C4;
+      --accent-contrast: #10201C;
+      --brass: #D8B463;
+      --brass-bg: #3A331E;
+      --rule: #333A2F;
+      --danger: #D97D68;
+      --danger-bg: #3A241D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 18px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #171B16;
+    --surface: #1F241D;
+    --ink: #E7EAE0;
+    --ink-soft: #9AA394;
+    --accent: #6FBFAE;
+    --accent-strong: #8ED4C4;
+    --accent-contrast: #10201C;
+    --brass: #D8B463;
+    --brass-bg: #3A331E;
+    --rule: #333A2F;
+    --danger: #D97D68;
+    --danger-bg: #3A241D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 18px rgba(0, 0, 0, 0.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    padding: 40px 20px 80px;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .mono {
+    font-family: "Courier Prime", "Courier New", monospace;
+  }
+
+  /* ---------- header ---------- */
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  .topbar h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .subapp {
+    margin: 0 0 4px;
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .tagline {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+
+  .count-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 6px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .count-badge .count-num {
+    font-family: "Courier Prime", monospace;
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .count-badge .count-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- add card ---------- */
+  .add-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 22px 24px 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .add-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .add-head h2 {
+    font-size: 1.05rem;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .next-number {
+    font-family: "Courier Prime", monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--brass);
+    background: var(--brass-bg);
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+
+  #note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .field-grow { flex: 2.4; }
+
+  .field-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  input[type="date"],
+  input[type="text"],
+  textarea {
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 9px 11px;
+    width: 100%;
+  }
+
+  input[type="date"] { font-family: "Courier Prime", monospace; }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .textarea-wrap,
+  .input-wrap {
+    position: relative;
+  }
+
+  .textarea-wrap textarea { padding-right: 46px; }
+
+  .input-wrap input { padding-right: 38px; }
+
+  .mic-btn-inline {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+  }
+
+  .mic-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .mic-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+  .mic-btn[aria-pressed="true"] {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--accent-contrast);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  .mic-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mic-btn[aria-pressed="true"] { animation: none; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(140, 59, 46, 0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(140, 59, 46, 0); }
+  }
+
+  .mic-status {
+    font-size: 0.76rem;
+    color: var(--danger);
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  .field-block { gap: 8px; }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 2px;
+  }
+
+  .form-hint {
+    font-size: 0.8rem;
+    color: var(--danger);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    padding: 9px 18px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    margin-left: auto;
+  }
+
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-primary:active { transform: translateY(1px); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border-color: var(--rule);
+  }
+
+  .btn-secondary:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+  /* ---------- ledger ---------- */
+  .ledger { display: flex; flex-direction: column; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    padding: 30px 10px;
+    border: 1px dashed var(--rule);
+    border-radius: 12px;
+  }
+
+  .notes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .note-row {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .note-row:first-child { border-top: 1px solid var(--rule); }
+
+  .note-row details summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 4px;
+  }
+
+  .note-row summary::-webkit-details-marker { display: none; }
+
+  .chevron {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    color: var(--ink-soft);
+    transition: transform 0.15s ease;
+  }
+
+  .note-row details[open] .chevron { transform: rotate(90deg); }
+
+  .chip {
+    font-family: "Courier Prime", monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--brass);
+    background: var(--brass-bg);
+    padding: 2px 8px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+  }
+
+  .note-date {
+    font-family: "Courier Prime", monospace;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .note-subject {
+    font-weight: 600;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .note-actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 4px;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .icon-btn:hover { background: var(--paper); color: var(--ink); }
+  .icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  .note-body {
+    margin: 0 0 16px 50px;
+    padding-right: 10px;
+    color: var(--ink);
+    white-space: pre-wrap;
+    font-size: 0.94rem;
+  }
+
+  .note-body:empty::before {
+    content: "(sem descritivo)";
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  .confirm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px 50px;
+    padding: 8px 12px;
+    background: var(--danger-bg);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
+  .confirm-row span { color: var(--danger); }
+
+  @media (max-width: 560px) {
+    .field-row { flex-direction: column; }
+    .note-date { display: none; }
+  }
+
+  /* ---------- v4: processo, arquivo ---------- */
+  .field-proc { flex: 1.1; }
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 12px 16px; box-shadow: var(--shadow);
+  }
+  .toolbar .field { flex: 0 1 280px; }
+  .toolbar select {
+    font: inherit; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; width: 100%;
+  }
+  .toolbar-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .toolbar-acts .btn-secondary { padding: 8px 14px; color: var(--ink); }
+  .note-proc {
+    font-family: "Courier Prime", monospace; font-size: 0.78rem; color: var(--accent);
+    border: 1px solid var(--rule); border-radius: 6px; padding: 1px 6px; flex: 0 0 auto; white-space: nowrap;
+  }
+  @media (max-width: 560px) { .note-proc { display: none; } .toolbar-acts { margin-left: 0; } }
+
+  #print-area { display: none; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area {
+      display: block !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 32px;
+      background: #fff;
+      color: #111;
+    }
+    .print-note-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 2px solid #111;
+      padding-bottom: 10px;
+      margin-bottom: 18px;
+      font-family: "Courier Prime", monospace;
+    }
+    .print-note-head .print-chip { font-weight: 700; }
+    .print-note h2 {
+      font-family: "Public Sans", sans-serif;
+      font-size: 1.3rem;
+      margin: 0 0 16px;
+    }
+    .print-list-head { font-family: "Public Sans", sans-serif; margin: 0 0 18px; }
+    .print-list-head h1 { font-size: 1.4rem; margin: 0 0 4px; }
+    .print-list-head div { font-size: 0.85rem; color: #444; }
+    .print-list .print-note { page-break-inside: avoid; margin-bottom: 22px; }
+    .print-list .print-note h2 { font-size: 1.1rem; margin: 0 0 8px; }
+    .print-list .print-note-head { margin-bottom: 8px; padding-bottom: 6px; border-bottom-width: 1px; }
+    .print-note p {
+      font-family: "Public Sans", sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+  }
+</style>
+
+<div class="page">
+  <header class="topbar">
+    <div>
+      <h1>BLABLA</h1>
+      <p class="subapp">Registo de notas &middot; SEEN &middot; <span id="verApp"></span></p>
+      <p class="tagline">numeração automática &middot; data &middot; assunto e descritivo, por escrito ou por voz</p>
+    </div>
+    <div class="count-badge">
+      <span class="count-num" id="count-num">0</span>
+      <span class="count-label" id="count-label">notas</span>
+    </div>
+  </header>
+
+  <section class="add-card" aria-labelledby="add-title">
+    <div class="add-head">
+      <h2 id="add-title">Nova nota</h2>
+      <span class="next-number mono" id="next-number-chip">Nº 001</span>
+    </div>
+
+    <form id="note-form">
+      <input type="hidden" id="editing-id" value="">
+      <div class="field-row">
+        <label class="field">
+          <span class="field-label">Data</span>
+          <input type="date" id="field-date" required>
+        </label>
+        <label class="field field-proc">
+          <span class="field-label">Processo n.º</span>
+          <input type="text" id="field-proc" list="lista-proc" placeholder="(opcional)" maxlength="40" autocomplete="off">
+          <datalist id="lista-proc"></datalist>
+        </label>
+        <label class="field field-grow">
+          <span class="field-label">Assunto</span>
+          <div class="input-wrap">
+            <input type="text" id="field-subject" placeholder="Ex.: Reunião com o fornecedor" maxlength="120" required>
+            <button type="button" id="mic-btn-subject" class="mic-btn mic-btn-inline" title="Ditar o assunto" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <span class="mic-status" id="mic-status-subject" hidden></span>
+        </label>
+      </div>
+
+      <label class="field field-block">
+        <span class="field-label">Descritivo</span>
+        <div class="textarea-wrap">
+          <textarea id="field-body" rows="5" placeholder="Escreva o descritivo, ou use o microfone para ditar..."></textarea>
+          <button type="button" id="mic-btn-body" class="mic-btn" title="Ditar o descritivo" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <span class="mic-status" id="mic-status-body" hidden></span>
+      </label>
+
+      <div class="form-actions">
+        <span class="form-hint" id="form-hint"></span>
+        <button type="button" class="btn-secondary" id="cancel-edit-btn" hidden>Cancelar edição</button>
+        <button type="submit" class="btn-primary" id="submit-btn">Guardar nota</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="toolbar" aria-label="Filtro e arquivo">
+    <label class="field">
+      <span class="field-label">Mostrar</span>
+      <select id="filtro-proc"></select>
+    </label>
+    <div class="toolbar-acts">
+      <button type="button" class="btn-secondary" id="btn-print-list" title="Imprimir / PDF das notas mostradas">&#128424; Imprimir lista</button>
+      <button type="button" class="btn-secondary" id="btn-backup" title="Gravar cópia de segurança (.json) das notas mostradas">&#11015; Backup</button>
+      <button type="button" class="btn-secondary" id="btn-restore" title="Repor notas a partir de um backup (.json)">&#11014; Repor backup</button>
+      <input type="file" id="file-restore" accept=".json,.txt,application/json,text/plain" hidden>
+    </div>
+  </section>
+
+  <section class="ledger" aria-label="Notas registadas">
+    <div class="empty-state" id="empty-state">Ainda não há notas. A primeira entrada fica com o número 001.</div>
+    <ul class="notes-list" id="notes-list"></ul>
+  </section>
+</div>
+
+<div id="print-area"></div>
+
+<script type="application/json" id="notes-store">[]</script>
+
+<script>
+  /* versão no banner: lida sempre de BLABLA_VERSAO */
+  var BLABLA_VERSAO = "4";
+  try { document.getElementById("verApp").textContent = "v" + BLABLA_VERSAO; } catch (e) {}
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "registo-notas-fallback-v1";
+
+  var notesStoreEl = document.getElementById("notes-store");
+  var notes = [];
+  try { notes = JSON.parse(notesStoreEl.textContent || "[]"); } catch (e) { notes = []; }
+
+  var artifactApi = null;
+  var usingArtifact = false;
+
+  var listEl = document.getElementById("notes-list");
+  var emptyEl = document.getElementById("empty-state");
+  var countNumEl = document.getElementById("count-num");
+  var countLabelEl = document.getElementById("count-label");
+  var nextNumberChip = document.getElementById("next-number-chip");
+  var form = document.getElementById("note-form");
+  var fieldDate = document.getElementById("field-date");
+  var fieldSubject = document.getElementById("field-subject");
+  var fieldBody = document.getElementById("field-body");
+  var editingIdInput = document.getElementById("editing-id");
+  var submitBtn = document.getElementById("submit-btn");
+  var cancelEditBtn = document.getElementById("cancel-edit-btn");
+  var formHint = document.getElementById("form-hint");
+  var micBtnBody = document.getElementById("mic-btn-body");
+  var micStatusBody = document.getElementById("mic-status-body");
+  var micBtnSubject = document.getElementById("mic-btn-subject");
+  var micStatusSubject = document.getElementById("mic-status-subject");
+  var printArea = document.getElementById("print-area");
+  var fieldProc = document.getElementById("field-proc");
+  var listaProc = document.getElementById("lista-proc");
+  var filtroEl = document.getElementById("filtro-proc");
+  var addTitle = document.getElementById("add-title");
+  var FILTRO_KEY = "blabla-filtro-v4";
+  var filtro = "";
+  try { filtro = localStorage.getItem(FILTRO_KEY) || ""; } catch (e) {}
+
+  /* ---------- v4: n.º do processo nos nomes dos ficheiros ---------- */
+  function procNome(p) { return String(p || "").trim().replace(/[^\w.-]+/g, "_") || "sem_processo"; }
+  function procs(L) {
+    var s = {}; (L || notes).forEach(function (n) { var p = String(n.proc || "").trim(); if (p) s[p] = 1; });
+    return Object.keys(s).sort(function (a, b) { return a.localeCompare(b, "pt", { numeric: true }); });
+  }
+  function procLista(L) {
+    var f = procs(L);
+    return !f.length ? "sem_processo" : f.slice(0, 3).map(procNome).join("+") + (f.length > 3 ? "_e_mais_" + (f.length - 3) : "");
+  }
+  function visiveis() {
+    return notes.filter(function (n) {
+      var p = String(n.proc || "").trim();
+      return !filtro || (filtro === "__sem" ? !p : p === filtro);
+    });
+  }
+  function tagFiltro(L) { return filtro && filtro !== "__sem" ? procNome(filtro) : (filtro === "__sem" ? "sem_processo" : procLista(L)); }
+  function renderFiltro() {
+    var P = procs();
+    if (filtro && filtro !== "__sem" && P.indexOf(filtro) < 0) filtro = "";
+    var semN = notes.filter(function (n) { return !String(n.proc || "").trim(); }).length;
+    filtroEl.innerHTML = '<option value="">Todas as notas (' + notes.length + ')</option>' +
+      P.map(function (p) {
+        var k = notes.filter(function (n) { return String(n.proc || "").trim() === p; }).length;
+        return '<option value="' + escapeHtml(p) + '"' + (p === filtro ? " selected" : "") + '>Processo ' + escapeHtml(p) + ' (' + k + ')</option>';
+      }).join("") +
+      (semN ? '<option value="__sem"' + (filtro === "__sem" ? " selected" : "") + '>Sem processo (' + semN + ')</option>' : "");
+    filtroEl.value = filtro;
+    listaProc.innerHTML = P.map(function (p) { return '<option value="' + escapeHtml(p) + '">'; }).join("");
+  }
+  function avisar(msg) { formHint.textContent = msg; setTimeout(function () { if (formHint.textContent === msg) formHint.textContent = ""; }, 5000); }
+  // Guardar: PC (Chrome/Edge) → «Guardar como» (lembra a última pasta: escolher a do processo no Drive);
+  // telemóvel → partilhar (Drive); senão → Transferências
+  async function guardarComo(nome, conteudo, tipo, ext) {
+    if (window.showSaveFilePicker) {
+      try {
+        var o = { id: "blabla-export", suggestedName: nome, types: [{ description: "BLABLA", accept: {} }] };
+        o.types[0].accept[tipo] = [ext];
+        var h = await window.showSaveFilePicker(o); var w = await h.createWritable(); await w.write(conteudo); await w.close();
+        return h.name;
+      } catch (e) { if (e.name === "AbortError") return null; console.warn(e); }
+    }
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && navigator.share) {
+      var alt = [[nome, tipo], [nome.replace(/\.[^.]+$/, ".txt"), "text/plain"]];
+      for (var i = 0; i < alt.length; i++) {
+        try {
+          var f = new File([conteudo], alt[i][0], { type: alt[i][1] });
+          if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: f.name }); return f.name; }
+        } catch (e) { if (e.name === "AbortError") return null; }
+      }
+    }
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([conteudo], { type: tipo })); a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    return nome;
+  }
+  function comTitulo(tit, fn) {
+    var old = document.title; document.title = tit;
+    var repor = function () { document.title = old; window.removeEventListener("afterprint", repor); };
+    window.addEventListener("afterprint", repor); fn(); setTimeout(repor, 1500);
+  }
+
+  function pad3(n) { return String(n).padStart(3, "0"); }
+
+  function nextNumber() {
+    if (!notes.length) return 1;
+    var max = 0;
+    for (var i = 0; i < notes.length; i++) if (notes[i].id > max) max = notes[i].id;
+    return max + 1;
+  }
+
+  function todayLocal() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + m + "-" + day;
+  }
+
+  function formatDateDisplay(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-");
+    var d = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+    return new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(d);
+  }
+
+  function pluralNotas(n) { return n === 1 ? "nota" : "notas"; }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function updateNextNumberChip() {
+    nextNumberChip.textContent = "Nº " + pad3(nextNumber());
+  }
+
+  function updateCount() {
+    countNumEl.textContent = notes.length;
+    countLabelEl.textContent = pluralNotas(notes.length);
+  }
+
+  function renderList() {
+    renderFiltro();
+    var sorted = visiveis().sort(function (a, b) { return b.id - a.id; });
+    listEl.innerHTML = "";
+    emptyEl.hidden = sorted.length > 0;
+    emptyEl.textContent = notes.length ? "Nenhuma nota neste filtro." : "Ainda não há notas. A primeira entrada fica com o número 001.";
+
+    sorted.forEach(function (note) {
+      var li = document.createElement("li");
+      li.className = "note-row";
+      li.innerHTML =
+        '<details>' +
+          '<summary>' +
+            '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>' +
+            '<span class="chip mono">Nº ' + pad3(note.id) + '</span>' +
+            '<span class="note-date">' + formatDateDisplay(note.date) + '</span>' +
+            (note.proc ? '<span class="note-proc" title="Processo n.º">' + escapeHtml(note.proc) + '</span>' : '') +
+            '<span class="note-subject">' + escapeHtml(note.subject) + '</span>' +
+            '<span class="note-actions">' +
+              '<button type="button" class="icon-btn" data-action="print" data-id="' + note.id + '" title="Imprimir" aria-label="Imprimir nota ' + note.id + '">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>' +
+              '</button>' +
+              '<button type="button" class="icon-btn" data-action="edit" data-id="' + note.id + '" title="Editar" aria-label="Editar nota ' + note.id + '">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>' +
+              '</button>' +
+              '<button type="button" class="icon-btn danger" data-action="delete" data-id="' + note.id + '" title="Eliminar" aria-label="Eliminar nota ' + note.id + '">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>' +
+              '</button>' +
+            '</span>' +
+          '</summary>' +
+          '<p class="note-body">' + escapeHtml(note.body || "") + '</p>' +
+        '</details>';
+      listEl.appendChild(li);
+    });
+
+    updateCount();
+    updateNextNumberChip();
+  }
+
+  function resetForm() {
+    editingIdInput.value = "";
+    form.reset();
+    fieldDate.value = todayLocal();
+    fieldProc.value = filtro && filtro !== "__sem" ? filtro : "";
+    addTitle.textContent = "Nova nota";
+    submitBtn.textContent = "Guardar nota";
+    cancelEditBtn.hidden = true;
+    formHint.textContent = "";
+    updateNextNumberChip();
+  }
+
+  function persist() {
+    notesStoreEl.textContent = JSON.stringify(notes);
+    if (usingArtifact && artifactApi) {
+      var fullDoc = "<!doctype html>\n" + document.documentElement.outerHTML;
+      artifactApi.publish(fullDoc).catch(function () { /* a concurrent publish won; the reload already reflects the winner */ });
+    } else {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(notes)); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function printNote(id) {
+    var note = notes.find(function (n) { return n.id === id; });
+    if (!note) return;
+    printArea.innerHTML =
+      '<div class="print-note">' +
+        '<div class="print-note-head">' +
+          '<span class="print-chip">Nº ' + pad3(note.id) + '</span>' +
+          '<span>' + formatDateDisplay(note.date) + '</span>' +
+        '</div>' +
+        (note.proc ? '<div style="font-family:Public Sans,sans-serif;margin:-8px 0 12px">Processo n.º <b>' + escapeHtml(note.proc) + '</b></div>' : '') +
+        '<h2>' + escapeHtml(note.subject) + '</h2>' +
+        '<p>' + escapeHtml(note.body || "(sem descritivo)") + '</p>' +
+      '</div>';
+    comTitulo("BLABLA_" + procNome(note.proc) + "_N" + pad3(note.id) + "_" + (note.date || todayLocal()), function () { window.print(); });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    stopAllDictation();
+    var date = fieldDate.value;
+    var subject = fieldSubject.value.trim();
+    var body = fieldBody.value.trim();
+    var proc = fieldProc.value.trim();
+
+    if (!date || !subject) {
+      formHint.textContent = "Preencha a data e o assunto.";
+      return;
+    }
+
+    var editingId = editingIdInput.value ? Number(editingIdInput.value) : null;
+    if (editingId) {
+      var note = notes.find(function (n) { return n.id === editingId; });
+      if (note) { note.date = date; note.subject = subject; note.body = body; note.proc = proc; }
+    } else {
+      notes.push({ id: nextNumber(), date: date, proc: proc, subject: subject, body: body, createdAt: Date.now() });
+    }
+
+    resetForm();
+    renderList();
+    persist();
+  });
+
+  cancelEditBtn.addEventListener("click", function () {
+    resetForm();
+  });
+
+  listEl.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    var id = Number(btn.dataset.id);
+    var action = btn.dataset.action;
+
+    if (action === "print") {
+      printNote(id);
+      return;
+    }
+
+    if (action === "edit") {
+      var note = notes.find(function (n) { return n.id === id; });
+      if (!note) return;
+      editingIdInput.value = String(note.id);
+      fieldDate.value = note.date;
+      fieldSubject.value = note.subject;
+      fieldProc.value = note.proc || "";
+      addTitle.textContent = "Editar nota";
+      fieldBody.value = note.body || "";
+      submitBtn.textContent = "Guardar alterações";
+      cancelEditBtn.hidden = false;
+      nextNumberChip.textContent = "Nº " + pad3(note.id);
+      formHint.textContent = "";
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+      fieldSubject.focus();
+      return;
+    }
+
+    if (action === "delete") {
+      var row = btn.closest(".note-row");
+      if (row.querySelector(".confirm-row")) return;
+      var confirmRow = document.createElement("div");
+      confirmRow.className = "confirm-row";
+      confirmRow.innerHTML =
+        '<span>Eliminar a nota Nº ' + pad3(id) + '?</span>' +
+        '<button type="button" class="btn-secondary" data-cancel-delete>Cancelar</button>' +
+        '<button type="button" class="btn-primary" style="background:var(--danger)" data-confirm-delete="' + id + '">Eliminar</button>';
+      row.appendChild(confirmRow);
+    }
+  });
+
+  listEl.addEventListener("click", function (e) {
+    if (e.target.matches("[data-cancel-delete]")) {
+      e.target.closest(".confirm-row").remove();
+    }
+    if (e.target.matches("[data-confirm-delete]")) {
+      var id = Number(e.target.dataset.confirmDelete);
+      notes = notes.filter(function (n) { return n.id !== id; });
+      if (editingIdInput.value && Number(editingIdInput.value) === id) resetForm();
+      renderList();
+      persist();
+    }
+  });
+
+  /* ---------- v4: filtro, backup, repor, imprimir lista ---------- */
+  filtroEl.addEventListener("change", function () {
+    filtro = filtroEl.value;
+    try { localStorage.setItem(FILTRO_KEY, filtro); } catch (e) {}
+    if (!editingIdInput.value) fieldProc.value = filtro && filtro !== "__sem" ? filtro : "";
+    renderList();
+  });
+
+  document.getElementById("btn-backup").addEventListener("click", async function () {
+    var L = visiveis();
+    if (!L.length) { avisar("Não há notas para gravar."); return; }
+    var parcial = !!filtro;
+    var dados = { app: "BLABLA", versaoApp: BLABLA_VERSAO, exportado: new Date().toISOString(),
+      backup: { parcial: parcial, processo: filtro === "__sem" ? "" : filtro }, notas: L };
+    var nome = "BLABLA_" + tagFiltro(L) + (parcial ? "" : "_todas") + "_backup_" + todayLocal() + ".json";
+    var g = await guardarComo(nome, JSON.stringify(dados, null, 1), "application/json", ".json");
+    if (g) avisar("Backup gravado: " + g);
+  });
+
+  var fileRestore = document.getElementById("file-restore");
+  document.getElementById("btn-restore").addEventListener("click", function () { fileRestore.click(); });
+  fileRestore.addEventListener("change", async function () {
+    var f = fileRestore.files[0]; fileRestore.value = ""; if (!f) return;
+    var d;
+    try { d = JSON.parse(await f.text()); } catch (e) { avisar("Ficheiro inválido: não é um backup BLABLA."); return; }
+    var L = Array.isArray(d) ? d : d && d.notas;
+    if (!Array.isArray(L)) { avisar("Ficheiro inválido: não é um backup BLABLA."); return; }
+    L = L.filter(function (n) { return n && n.subject; });
+    var parcial = !Array.isArray(d) && d.backup && d.backup.parcial, msg = "";
+    if (!parcial) {
+      if (!confirm("Repor backup com " + L.length + " notas?\nAs " + notes.length + " notas atuais deste computador serão substituídas.")) return;
+      notes = L.map(function (n) { return { id: Number(n.id) || 0, date: n.date || "", proc: n.proc || "", subject: n.subject, body: n.body || "", createdAt: n.createdAt || Date.now() }; });
+      notes.forEach(function (n) { if (!n.id) n.id = nextNumber(); });
+    } else {
+      var novas = 0, act = 0;
+      if (!confirm("Juntar " + L.length + " notas" + (d.backup.processo ? " do processo " + d.backup.processo : "") + " às notas deste computador?\nNotas já existentes são atualizadas; as outras não são alteradas.")) return;
+      L.forEach(function (n) {
+        var ex = notes.find(function (x) { return x.createdAt && x.createdAt === n.createdAt; });
+        var rec = { date: n.date || "", proc: n.proc || "", subject: n.subject, body: n.body || "" };
+        if (ex) { Object.assign(ex, rec); act++; return; }
+        var id = Number(n.id) || 0;
+        if (!id || notes.some(function (x) { return x.id === id; })) id = nextNumber();
+        notes.push(Object.assign({ id: id, createdAt: n.createdAt || Date.now() }, rec)); novas++;
+      });
+      var msg = novas + " notas novas, " + act + " atualizadas.";
+    }
+    resetForm(); renderList(); persist();
+    avisar(msg || ("Backup reposto: " + notes.length + " notas."));
+  });
+
+  document.getElementById("btn-print-list").addEventListener("click", function () {
+    var L = visiveis().sort(function (a, b) { return a.id - b.id; });
+    if (!L.length) { avisar("Não há notas para imprimir."); return; }
+    var tit = filtro && filtro !== "__sem" ? "Processo n.º " + escapeHtml(filtro) : (filtro === "__sem" ? "Notas sem processo" : "Todas as notas");
+    printArea.innerHTML = '<div class="print-list"><div class="print-list-head"><h1>BLABLA · Registo de notas</h1><div>' + tit +
+      ' · ' + L.length + ' ' + pluralNotas(L.length) + ' · impresso em ' + formatDateDisplay(todayLocal()) + ' · SEEN</div></div>' +
+      L.map(function (n) {
+        return '<div class="print-note"><div class="print-note-head"><span class="print-chip">Nº ' + pad3(n.id) + (n.proc ? ' · ' + escapeHtml(n.proc) : '') +
+          '</span><span>' + formatDateDisplay(n.date) + '</span></div><h2>' + escapeHtml(n.subject) + '</h2><p>' + escapeHtml(n.body || "(sem descritivo)") + '</p></div>';
+      }).join("") + '</div>';
+    comTitulo("BLABLA_" + tagFiltro(L) + "_notas_" + todayLocal(), function () { window.print(); });
+  });
+
+  /* ---------- dictation (Web Speech API) ---------- */
+  var dictationControllers = [];
+
+  function createDictation(button, field, statusEl, opts) {
+    var singleLine = !!(opts && opts.singleLine);
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var recognition = null;
+    var recognizing = false;
+    var baseText = "";
+
+    if (!SR) {
+      button.disabled = true;
+      button.title = "Ditado por voz não suportado neste navegador";
+      return { stop: function () {} };
+    }
+
+    try {
+      recognition = new SR();
+    } catch (e) {
+      button.disabled = true;
+      button.title = "Ditado por voz indisponível aqui";
+      return { stop: function () {} };
+    }
+    recognition.lang = "pt-PT";
+    recognition.continuous = !singleLine;
+    recognition.interimResults = true;
+
+    recognition.onresult = function (e) {
+      var finalText = "";
+      var interim = "";
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        var t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t + " ";
+        else interim += t;
+      }
+      baseText = baseText + finalText;
+      var combined = (baseText + interim).replace(/\s+$/, " ");
+      field.value = singleLine ? combined.trim() : combined;
+    };
+
+    recognition.onerror = function (e) {
+      statusEl.hidden = false;
+      statusEl.textContent = e.error === "not-allowed"
+        ? "Sem permissão para usar o microfone."
+        : "Não foi possível ouvir. Tente novamente.";
+      stop();
+    };
+
+    recognition.onend = function () {
+      recognizing = false;
+      button.setAttribute("aria-pressed", "false");
+    };
+
+    function start() {
+      baseText = field.value ? field.value.trim() + " " : "";
+      statusEl.hidden = true;
+      try {
+        recognition.start();
+        recognizing = true;
+        button.setAttribute("aria-pressed", "true");
+      } catch (e) { /* already started */ }
+    }
+
+    function stop() {
+      if (recognizing) recognition.stop();
+      recognizing = false;
+      button.setAttribute("aria-pressed", "false");
+    }
+
+    button.addEventListener("click", function () {
+      if (recognizing) stop(); else start();
+    });
+
+    return { stop: stop };
+  }
+
+  function stopAllDictation() {
+    dictationControllers.forEach(function (c) { c.stop(); });
+  }
+
+  function setupSpeech() {
+    dictationControllers = [
+      createDictation(micBtnSubject, fieldSubject, micStatusSubject, { singleLine: true }),
+      createDictation(micBtnBody, fieldBody, micStatusBody, { singleLine: false })
+    ];
+  }
+
+  /* ---------- init ---------- */
+  function init() {
+    fieldDate.value = todayLocal();
+    if (filtro && filtro !== "__sem") fieldProc.value = filtro;
+    renderList();
+
+    try { setupSpeech(); } catch (e) { /* dictation is optional; the form still works without it */ }
+
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("artifact").then(function (api) {
+        if (api) {
+          artifactApi = api;
+          usingArtifact = true;
+        } else {
+          loadFallback();
+        }
+      }).catch(function () { loadFallback(); });
+    } else {
+      loadFallback();
+    }
+  }
+
+  function loadFallback() {
+    if (notes.length) return; // already have published data
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        notes = JSON.parse(raw);
+        renderList();
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  init();
+})();
+</script>
